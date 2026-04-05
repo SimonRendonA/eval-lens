@@ -1,0 +1,151 @@
+id,prompt,expected
+1,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Pixel 9 Pro by Google. Category: electronics. Price: $999.00. Out of stock.","{""product_name"": ""Pixel 9 Pro"", ""brand"": ""Google"", ""category"": ""electronics"", ""price_usd"": 999.0, ""in_stock"": false}"
+2,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Air Max 90 by Nike. Category: sports. Price: $130.00. Out of stock.","{""product_name"": ""Air Max 90"", ""brand"": ""Nike"", ""category"": ""sports"", ""price_usd"": 130.0, ""in_stock"": false}"
+3,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Kindle Scribe by Amazon. Category: electronics. Price: $339.99. In stock.","{""product_name"": ""Kindle Scribe"", ""brand"": ""Amazon"", ""category"": ""electronics"", ""price_usd"": 339.99, ""in_stock"": true}"
+4,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Stanley Tumbler by Stanley. Category: home. Price: $35.00. In stock.","{""product_name"": ""Stanley Tumbler"", ""brand"": ""Stanley"", ""category"": ""home"", ""price_usd"": 35.0, ""in_stock"": true}"
+5,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Levi's 501 by Levi's. Category: clothing. Price: $69.50. In stock.","{""product_name"": ""Levi's 501"", ""brand"": ""Levi's"", ""category"": ""clothing"", ""price_usd"": 69.5, ""in_stock"": true}"
+6,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: AirPods Pro 2 by Apple. Category: electronics. Price: $249.00. In stock.","{""product_name"": ""AirPods Pro 2"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 249.0, ""in_stock"": true}"
+7,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Yeti Cooler by Yeti. Category: home. Price: $299.99. Out of stock.","{""product_name"": ""Yeti Cooler"", ""brand"": ""Yeti"", ""category"": ""home"", ""price_usd"": 299.99, ""in_stock"": false}"
+8,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Ultraboost 23 by Adidas. Category: sports. Price: $190.00. Out of stock.","{""product_name"": ""Ultraboost 23"", ""brand"": ""Adidas"", ""category"": ""sports"", ""price_usd"": 190.0, ""in_stock"": false}"
+9,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Atomic Habits by James Clear. Category: books. Price: $16.99. In stock.","{""product_name"": ""Atomic Habits"", ""brand"": ""James Clear"", ""category"": ""books"", ""price_usd"": 16.99, ""in_stock"": true}"
+10,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: MacBook Air M3 by Apple. Category: electronics. Price: $1099.00. In stock.","{""product_name"": ""MacBook Air M3"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 1099.0, ""in_stock"": true}"
+11,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Pixel 9 Pro by Google. Category: electronics. Price: $999.00. In stock.","{""product_name"": ""Pixel 9 Pro"", ""brand"": ""Google"", ""category"": ""electronics"", ""price_usd"": 999.0, ""in_stock"": true}"
+12,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Air Max 90 by Nike. Category: sports. Price: $130.00. Out of stock.","{""product_name"": ""Air Max 90"", ""brand"": ""Nike"", ""category"": ""sports"", ""price_usd"": 130.0, ""in_stock"": false}"
+13,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Kindle Scribe by Amazon. Category: electronics. Price: $339.99. In stock.","{""product_name"": ""Kindle Scribe"", ""brand"": ""Amazon"", ""category"": ""electronics"", ""price_usd"": 339.99, ""in_stock"": true}"
+14,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Stanley Tumbler by Stanley. Category: home. Price: $35.00. Out of stock.","{""product_name"": ""Stanley Tumbler"", ""brand"": ""Stanley"", ""category"": ""home"", ""price_usd"": 35.0, ""in_stock"": false}"
+15,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Levi's 501 by Levi's. Category: clothing. Price: $69.50. In stock.","{""product_name"": ""Levi's 501"", ""brand"": ""Levi's"", ""category"": ""clothing"", ""price_usd"": 69.5, ""in_stock"": true}"
+16,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: AirPods Pro 2 by Apple. Category: electronics. Price: $249.00. In stock.","{""product_name"": ""AirPods Pro 2"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 249.0, ""in_stock"": true}"
+17,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Yeti Cooler by Yeti. Category: home. Price: $299.99. Out of stock.","{""product_name"": ""Yeti Cooler"", ""brand"": ""Yeti"", ""category"": ""home"", ""price_usd"": 299.99, ""in_stock"": false}"
+18,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Ultraboost 23 by Adidas. Category: sports. Price: $190.00. In stock.","{""product_name"": ""Ultraboost 23"", ""brand"": ""Adidas"", ""category"": ""sports"", ""price_usd"": 190.0, ""in_stock"": true}"
+19,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Atomic Habits by James Clear. Category: books. Price: $16.99. Out of stock.","{""product_name"": ""Atomic Habits"", ""brand"": ""James Clear"", ""category"": ""books"", ""price_usd"": 16.99, ""in_stock"": false}"
+20,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: MacBook Air M3 by Apple. Category: electronics. Price: $1099.00. Out of stock.","{""product_name"": ""MacBook Air M3"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 1099.0, ""in_stock"": false}"
+21,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Pixel 9 Pro by Google. Category: electronics. Price: $999.00. In stock.","{""product_name"": ""Pixel 9 Pro"", ""brand"": ""Google"", ""category"": ""electronics"", ""price_usd"": 999.0, ""in_stock"": true}"
+22,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Air Max 90 by Nike. Category: sports. Price: $130.00. In stock.","{""product_name"": ""Air Max 90"", ""brand"": ""Nike"", ""category"": ""sports"", ""price_usd"": 130.0, ""in_stock"": true}"
+23,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Kindle Scribe by Amazon. Category: electronics. Price: $339.99. Out of stock.","{""product_name"": ""Kindle Scribe"", ""brand"": ""Amazon"", ""category"": ""electronics"", ""price_usd"": 339.99, ""in_stock"": false}"
+24,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Stanley Tumbler by Stanley. Category: home. Price: $35.00. Out of stock.","{""product_name"": ""Stanley Tumbler"", ""brand"": ""Stanley"", ""category"": ""home"", ""price_usd"": 35.0, ""in_stock"": false}"
+25,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Levi's 501 by Levi's. Category: clothing. Price: $69.50. In stock.","{""product_name"": ""Levi's 501"", ""brand"": ""Levi's"", ""category"": ""clothing"", ""price_usd"": 69.5, ""in_stock"": true}"
+26,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: AirPods Pro 2 by Apple. Category: electronics. Price: $249.00. In stock.","{""product_name"": ""AirPods Pro 2"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 249.0, ""in_stock"": true}"
+27,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Yeti Cooler by Yeti. Category: home. Price: $299.99. In stock.","{""product_name"": ""Yeti Cooler"", ""brand"": ""Yeti"", ""category"": ""home"", ""price_usd"": 299.99, ""in_stock"": true}"
+28,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Ultraboost 23 by Adidas. Category: sports. Price: $190.00. In stock.","{""product_name"": ""Ultraboost 23"", ""brand"": ""Adidas"", ""category"": ""sports"", ""price_usd"": 190.0, ""in_stock"": true}"
+29,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Atomic Habits by James Clear. Category: books. Price: $16.99. In stock.","{""product_name"": ""Atomic Habits"", ""brand"": ""James Clear"", ""category"": ""books"", ""price_usd"": 16.99, ""in_stock"": true}"
+30,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: MacBook Air M3 by Apple. Category: electronics. Price: $1099.00. In stock.","{""product_name"": ""MacBook Air M3"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 1099.0, ""in_stock"": true}"
+31,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Pixel 9 Pro by Google. Category: electronics. Price: $999.00. Out of stock.","{""product_name"": ""Pixel 9 Pro"", ""brand"": ""Google"", ""category"": ""electronics"", ""price_usd"": 999.0, ""in_stock"": false}"
+32,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Air Max 90 by Nike. Category: sports. Price: $130.00. In stock.","{""product_name"": ""Air Max 90"", ""brand"": ""Nike"", ""category"": ""sports"", ""price_usd"": 130.0, ""in_stock"": true}"
+33,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Kindle Scribe by Amazon. Category: electronics. Price: $339.99. In stock.","{""product_name"": ""Kindle Scribe"", ""brand"": ""Amazon"", ""category"": ""electronics"", ""price_usd"": 339.99, ""in_stock"": true}"
+34,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Stanley Tumbler by Stanley. Category: home. Price: $35.00. In stock.","{""product_name"": ""Stanley Tumbler"", ""brand"": ""Stanley"", ""category"": ""home"", ""price_usd"": 35.0, ""in_stock"": true}"
+35,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Levi's 501 by Levi's. Category: clothing. Price: $69.50. Out of stock.","{""product_name"": ""Levi's 501"", ""brand"": ""Levi's"", ""category"": ""clothing"", ""price_usd"": 69.5, ""in_stock"": false}"
+36,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: AirPods Pro 2 by Apple. Category: electronics. Price: $249.00. In stock.","{""product_name"": ""AirPods Pro 2"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 249.0, ""in_stock"": true}"
+37,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Yeti Cooler by Yeti. Category: home. Price: $299.99. In stock.","{""product_name"": ""Yeti Cooler"", ""brand"": ""Yeti"", ""category"": ""home"", ""price_usd"": 299.99, ""in_stock"": true}"
+38,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Ultraboost 23 by Adidas. Category: sports. Price: $190.00. Out of stock.","{""product_name"": ""Ultraboost 23"", ""brand"": ""Adidas"", ""category"": ""sports"", ""price_usd"": 190.0, ""in_stock"": false}"
+39,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Atomic Habits by James Clear. Category: books. Price: $16.99. In stock.","{""product_name"": ""Atomic Habits"", ""brand"": ""James Clear"", ""category"": ""books"", ""price_usd"": 16.99, ""in_stock"": true}"
+40,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: MacBook Air M3 by Apple. Category: electronics. Price: $1099.00. In stock.","{""product_name"": ""MacBook Air M3"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 1099.0, ""in_stock"": true}"
+41,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Pixel 9 Pro by Google. Category: electronics. Price: $999.00. Out of stock.","{""product_name"": ""Pixel 9 Pro"", ""brand"": ""Google"", ""category"": ""electronics"", ""price_usd"": 999.0, ""in_stock"": false}"
+42,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Air Max 90 by Nike. Category: sports. Price: $130.00. Out of stock.","{""product_name"": ""Air Max 90"", ""brand"": ""Nike"", ""category"": ""sports"", ""price_usd"": 130.0, ""in_stock"": false}"
+43,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Kindle Scribe by Amazon. Category: electronics. Price: $339.99. In stock.","{""product_name"": ""Kindle Scribe"", ""brand"": ""Amazon"", ""category"": ""electronics"", ""price_usd"": 339.99, ""in_stock"": true}"
+44,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Stanley Tumbler by Stanley. Category: home. Price: $35.00. Out of stock.","{""product_name"": ""Stanley Tumbler"", ""brand"": ""Stanley"", ""category"": ""home"", ""price_usd"": 35.0, ""in_stock"": false}"
+45,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Levi's 501 by Levi's. Category: clothing. Price: $69.50. In stock.","{""product_name"": ""Levi's 501"", ""brand"": ""Levi's"", ""category"": ""clothing"", ""price_usd"": 69.5, ""in_stock"": true}"
+46,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: AirPods Pro 2 by Apple. Category: electronics. Price: $249.00. Out of stock.","{""product_name"": ""AirPods Pro 2"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 249.0, ""in_stock"": false}"
+47,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Yeti Cooler by Yeti. Category: home. Price: $299.99. In stock.","{""product_name"": ""Yeti Cooler"", ""brand"": ""Yeti"", ""category"": ""home"", ""price_usd"": 299.99, ""in_stock"": true}"
+48,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Ultraboost 23 by Adidas. Category: sports. Price: $190.00. In stock.","{""product_name"": ""Ultraboost 23"", ""brand"": ""Adidas"", ""category"": ""sports"", ""price_usd"": 190.0, ""in_stock"": true}"
+49,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: Atomic Habits by James Clear. Category: books. Price: $16.99. Out of stock.","{""product_name"": ""Atomic Habits"", ""brand"": ""James Clear"", ""category"": ""books"", ""price_usd"": 16.99, ""in_stock"": false}"
+50,"You are a structured data extractor. Extract: product_name, brand, category (one of: electronics, clothing, home, sports, books), price_usd (number), and in_stock (boolean). Return valid JSON only.
+
+Source: Product listing: MacBook Air M3 by Apple. Category: electronics. Price: $1099.00. Out of stock.","{""product_name"": ""MacBook Air M3"", ""brand"": ""Apple"", ""category"": ""electronics"", ""price_usd"": 1099.0, ""in_stock"": false}"

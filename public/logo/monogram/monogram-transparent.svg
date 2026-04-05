@@ -1,0 +1,6 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00d4aa"/><stop offset="100%" stop-color="#00b4d8"/></linearGradient></defs>
+  <polygon points="256.0,66.0 420.5,161.0 420.5,351.0 256.0,446.0 91.5,351.0 91.5,161.0" fill="none" stroke="url(#g)" stroke-width="18.9" stroke-linejoin="round"/>
+  <polygon points="256.0,138.0 358.2,197.0 358.2,315.0 256.0,374.0 153.8,315.0 153.8,197.0" fill="none" stroke="#00d4aa" stroke-width="9.2" opacity=".3" stroke-linejoin="round"/>
+  <text x="256.0" y="256.0" text-anchor="middle" dominant-baseline="central" font-family="'DM Mono','SF Mono',ui-monospace,monospace" font-weight="700" font-size="150" letter-spacing="-11" fill="#00d4aa">EL</text>
+</svg>

@@ -1,0 +1,6 @@
+{"id": "1", "prompt": "Classify the sentiment of this review: The food was amazing and the service was excellent.", "expected": {"sentiment": "positive", "confidence": 0.95}}
+{"id": "2", "prompt": "Classify the sentiment of this review: Cold food, rude staff, overpriced.", "expected": {"sentiment": "negative", "confidence": 0.92}}
+{"id": "3", "prompt": "Classify the sentiment of this review: Average experience, nothing memorable.", "expected": {"sentiment": "neutral", "confidence": 0.65}}
+{"id": "4", "prompt": "Classify the sentiment of this review: Best restaurant in the city, hands down!", "expected": {"sentiment": "positive", "confidence": 0.98}}
+{"id": "5", "prompt": "Classify the sentiment of this review: Waited 45 minutes for a table, then another 30 for food.", "expected": {"sentiment": "negative", "confidence": 0.82}}
+{"id": "6", "prompt": "Classify the sentiment of this review: Decent portions but could use more seasoning.", "expected": {"sentiment": "neutral", "confidence": 0.58}}

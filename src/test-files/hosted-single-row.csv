@@ -1,0 +1,2 @@
+id,prompt,expected,actual
+1,"Extract the color","{""color"": ""blue""}","{""color"": ""blue""}"

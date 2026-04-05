@@ -1,0 +1,3 @@
+id,prompt,expected
+1,"Extract the name","{""name"": ""Alice""}"
+2,"Extract the name","{""name"": ""Bob""}"

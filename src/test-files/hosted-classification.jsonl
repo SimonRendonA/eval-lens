@@ -1,0 +1,8 @@
+{"id": "1", "prompt": "Classify the sentiment: Great product, love it!", "expected": {"sentiment": "positive", "confidence": 0.95}, "actual": {"sentiment": "positive", "confidence": 0.95}}
+{"id": "2", "prompt": "Classify the sentiment: Terrible service, never again.", "expected": {"sentiment": "negative", "confidence": 0.88}, "actual": {"sentiment": "positive", "confidence": 0.72}}
+{"id": "3", "prompt": "Classify the sentiment: It was fine, nothing special.", "expected": {"sentiment": "neutral", "confidence": 0.62}, "actual": {"sentiment": "neutral", "confidence": "high"}}
+{"id": "4", "prompt": "Classify the sentiment: Best purchase ever!", "expected": {"sentiment": "positive", "confidence": 0.99}, "actual": {"sentiment": "positive"}}
+{"id": "5", "prompt": "Classify the sentiment: Waste of money.", "expected": {"sentiment": "negative", "confidence": 0.91}, "actual": {"sentiment": "negative", "confidence": 0.91, "category": "product"}}
+{"id": "6", "prompt": "Classify the sentiment: Pretty good overall.", "expected": {"sentiment": "positive", "confidence": 0.78}, "actual": "not json"}
+{"id": "7", "prompt": "Classify the sentiment: Disappointing quality.", "expected": {"sentiment": "negative", "confidence": 0.85}, "actual": {"sentiment": "negative", "confidence": 0.85}}
+{"id": "8", "prompt": "Classify the sentiment: Exceeded expectations!", "expected": {"sentiment": "positive", "confidence": 0.93}, "actual": {"sentiment": "positive", "confidence": 0.93}}

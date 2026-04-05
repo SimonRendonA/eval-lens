@@ -1,0 +1,11 @@
+services:
+  evallens:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - EVALLENS_MODE=self-hosted
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: unless-stopped

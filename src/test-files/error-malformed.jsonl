@@ -1,0 +1,6 @@
+{"id": "1", "prompt": "Extract the name from: Alice is an engineer.", "expected": {"name": "Alice"}, "actual": {"name": "Alice"}}
+this line is not valid json
+{"id": "3", "prompt": "Extract the name from: Charlie is a designer.", "expected": {"name": "Charlie"}, "actual": {"name": "Charlie"}}
+{"id": "4", "prompt": "Missing the expected field"}
+[1, 2, 3]
+{"id": "6", "prompt": "Extract the name from: Frank is a PM.", "expected": {"name": "Frank"}, "actual": {"name": "Frank"}}

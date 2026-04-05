@@ -1,0 +1,6 @@
+id,prompt,expected,actual
+1,"Extract name from: Alice is a developer.","{""name"": ""Alice""}","{""name"": ""Alice""}"
+2,"Extract name from: Bob is a manager.","{""name"": ""Bob""}",
+3,,"{""name"": ""Charlie""}","{""name"": ""Charlie""}"
+4,"Extract name from: Diana is a lead.","{""name"": ""Diana""}","{""name"": ""Diana""}"
+5,"Extract name from: Eve is an analyst.","","{""name"": ""Eve""}"

@@ -1,0 +1,6 @@
+id,prompt,expected
+1,"Extract the name and role from: Alice is a software engineer at Acme Corp.","{""name"": ""Alice"", ""role"": ""software engineer"", ""company"": ""Acme Corp""}"
+2,"Extract the name and role from: Bob works as a product manager at DataSync.","{""name"": ""Bob"", ""role"": ""product manager"", ""company"": ""DataSync""}"
+3,"Extract the name and role from: Charlie is a data scientist at NanoTech.","{""name"": ""Charlie"", ""role"": ""data scientist"", ""company"": ""NanoTech""}"
+4,"Extract the name and role from: Diana is a UX designer at PixelForge.","{""name"": ""Diana"", ""role"": ""UX designer"", ""company"": ""PixelForge""}"
+5,"Extract the name and role from: Eve is a DevOps engineer at CloudNine.","{""name"": ""Eve"", ""role"": ""DevOps engineer"", ""company"": ""CloudNine""}"

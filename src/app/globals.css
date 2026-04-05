@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Font */
+  --font-mono: var(--font-dm-mono);
+
+  /* Radius */
+  --radius: 0.5rem;
+
+  /* ── Shadcn semantic tokens mapped to EvalLens design guide ── */
+
+  /* Base surfaces */
+  --color-background: #0c0d10;
+  --color-foreground: #e8eaed;
+
+  /* Cards */
+  --color-card: #161820;
+  --color-card-foreground: #e8eaed;
+
+  /* Popovers / panels */
+  --color-popover: #161820;
+  --color-popover-foreground: #e8eaed;
+
+  /* Primary = brand teal */
+  --color-primary: #00d4aa;
+  --color-primary-foreground: #0c0d10;
+
+  /* Secondary = elevated surface */
+  --color-secondary: #1c1e26;
+  --color-secondary-foreground: #e8eaed;
+
+  /* Muted = subtle backgrounds */
+  --color-muted: #1c1e26;
+  --color-muted-foreground: #8b8fa3;
+
+  /* Accent = hover/interactive surface */
+  --color-accent: #1c1e26;
+  --color-accent-foreground: #e8eaed;
+
+  /* Destructive = fail red */
+  --color-destructive: #ef4444;
+
+  /* Border / input / ring */
+  --color-border: #2a2d38;
+  --color-input: #2a2d38;
+  --color-ring: #00d4aa;
+
+  /* ── EvalLens custom tokens ── */
+
+  --color-brand: #00d4aa;
+  --color-brand-accent: #00b4d8;
+  --color-brand-light: #009d7e;
+
+  --color-pass: #22c55e;
+  --color-fail: #ef4444;
+  --color-warning: #f59e0b;
+
+  --color-bg: #0c0d10;
+  --color-surface: #161820;
+  --color-elevated: #1c1e26;
+  --color-text-muted: #6b7080;
+  --color-text-secondary: #8b8fa3;
+  --color-text-primary: #e8eaed;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+}
