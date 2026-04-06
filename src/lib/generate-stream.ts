@@ -3,6 +3,13 @@ type GenerateRow = {
   prompt: string;
 };
 
+/**
+ * Client helper for consuming generation SSE events from `/api/generate`.
+ *
+ * Translates stream events into UI callbacks for progress, completion, and
+ * terminal errors.
+ */
+
 type GenerateEvent = {
   id: string;
   prompt: string;

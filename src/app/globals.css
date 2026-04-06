@@ -67,6 +67,32 @@
 }
 
 body {
-  background-color: var(--color-bg);
+  background:
+    radial-gradient(800px 360px at 8% -12%, color-mix(in srgb, var(--color-brand) 20%, transparent), transparent 60%),
+    radial-gradient(680px 300px at 92% -8%, color-mix(in srgb, var(--color-brand-accent) 18%, transparent), transparent 60%),
+    var(--color-bg);
   color: var(--color-text-primary);
+}
+
+@keyframes landingReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-reveal {
+  opacity: 0;
+  animation: landingReveal 260ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-reveal {
+    opacity: 1;
+    animation: none;
+  }
 }

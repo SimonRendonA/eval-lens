@@ -12,6 +12,13 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 
+/**
+ * Self-hosted generation step.
+ *
+ * Lets users choose provider/model and visualizes server-streamed generation
+ * progress before the evaluation phase starts.
+ */
+
 export function GeneratingStep({
   availableProviders,
   rowCount,

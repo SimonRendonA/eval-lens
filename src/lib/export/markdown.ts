@@ -1,5 +1,12 @@
 import { EvaluationResult, ExportMeta, FailureReason } from "../types";
 
+/**
+ * Markdown exporter.
+ *
+ * Builds a human-readable report with summary tables, failure breakdown, and
+ * optional per-row failure details for sharing in docs/issues/PRs.
+ */
+
 
 export function exportToMarkdown(
   result: EvaluationResult,

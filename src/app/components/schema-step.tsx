@@ -10,6 +10,13 @@ import {
 } from "@/components/ui/table";
 import { ParseWarnings } from "./parse-warnings";
 
+/**
+ * Schema confirmation step.
+ *
+ * Shows inferred fields and requiredness so users can verify dataset shape
+ * before evaluation (or self-hosted generation).
+ */
+
 export function SchemaStep({
   fileName,
   rowCount,

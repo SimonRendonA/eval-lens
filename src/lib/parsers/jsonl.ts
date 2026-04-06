@@ -1,8 +1,13 @@
 import { RawDatasetRow } from "../types";
 
-const REQUIRED_KEYS = ["id", "prompt", "expected"] as const;
+/**
+ * JSONL/JSON parser implementation.
+ *
+ * Processes one JSON object per line, validates required keys, and normalizes
+ * non-string expected/actual payloads via JSON stringification.
+ */
 
-const OPTIONAL_KEYS = ["actual"] as const;
+const REQUIRED_KEYS = ["id", "prompt", "expected"] as const;
 
 type ParseError = {
   row: number | string;

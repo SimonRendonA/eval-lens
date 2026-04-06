@@ -1,5 +1,12 @@
 import { InferredSchema, SchemaField, Failure } from "../types";
 
+/**
+ * Schema validation module.
+ *
+ * Compares parsed `actual` objects against an inferred schema and emits
+ * structural failures (`MISSING_FIELD`, `WRONG_TYPE`, `EXTRA_FIELD`).
+ */
+
 /** Maps a runtime value to its SchemaField type tag. */
 function getType(value: unknown): SchemaField["type"] {
   if (value === null) return "null";
