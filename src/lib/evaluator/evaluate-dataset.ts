@@ -6,6 +6,13 @@ import {
 } from "../types";
 import { evaluateRow } from "./evaluate-row";
 
+/**
+ * Dataset-level evaluator.
+ *
+ * Runs `evaluateRow` for each row and aggregates summary metrics and
+ * per-reason failure counters for reporting and filtering in the UI.
+ */
+
 const ALL_FAILURE_REASONS: FailureReason[] = [
   "SCHEMA_MISMATCH",
   "MISSING_FIELD",

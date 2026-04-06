@@ -16,6 +16,13 @@ import {
 import { RowInspector } from "./row-inspector";
 import { ExportMenu } from "./export-menu";
 
+/**
+ * Results dashboard step.
+ *
+ * Renders aggregate metrics, interactive filters, row table, and hooks into
+ * row inspection + export actions.
+ */
+
 export function ResultsStep({
   result,
   onReset,

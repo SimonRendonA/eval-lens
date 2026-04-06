@@ -1,5 +1,13 @@
 import { createProvider } from "@/lib/providers";
 
+/**
+ * Streaming generation endpoint.
+ *
+ * Accepts rows + provider/model and streams row-level generation results as
+ * Server-Sent Events (`data: {...}`) so the UI can update progress in real
+ * time without polling.
+ */
+
 const KEY_MAP: Record<string, string> = {
   openai: "OPENAI_API_KEY",
   anthropic: "ANTHROPIC_API_KEY",

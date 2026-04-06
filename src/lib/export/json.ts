@@ -1,5 +1,12 @@
 import { EvaluationResult, ExportMeta } from "../types";
 
+/**
+ * JSON exporter.
+ *
+ * Emits a pretty-printed, lossless representation of summary + row results,
+ * with optional generation metadata block when provider/model is known.
+ */
+
 export function exportToJson(
   result: EvaluationResult,
   meta?: ExportMeta,

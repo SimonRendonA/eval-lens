@@ -15,6 +15,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+/**
+ * Export action menu for evaluated results.
+ *
+ * Provides one-click downloads in CSV/JSON/Markdown and PDF generation,
+ * preserving optional provider/model metadata in exported outputs.
+ */
+
 const timestamp = () => new Date().toISOString().split("T")[0];
 
 export function ExportMenu({

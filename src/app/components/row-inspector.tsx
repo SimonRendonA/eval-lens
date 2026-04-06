@@ -10,6 +10,13 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
+/**
+ * Row inspection panel.
+ *
+ * Displays focused expected/actual failure context and supports keyboard-like
+ * previous/next navigation across filtered result sets.
+ */
+
 type RowData = {
   id: string;
   status: "pass" | "fail";

@@ -1,9 +1,14 @@
 import Papa from "papaparse";
 import { RawDatasetRow } from "../types";
 
-const REQUIRED_COLUMNS = ["id", "prompt", "expected"] as const;
+/**
+ * CSV parser implementation.
+ *
+ * Enforces required columns, trims row values, and records row-level parse
+ * issues without aborting the entire dataset unless headers are invalid.
+ */
 
-const OPTIONAL_COLUMNS = ["actual"] as const;
+const REQUIRED_COLUMNS = ["id", "prompt", "expected"] as const;
 
 type ParseError = {
   row: number | string;

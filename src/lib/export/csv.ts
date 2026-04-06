@@ -1,5 +1,12 @@
 import { EvaluationResult, ExportMeta } from "../types";
 
+/**
+ * CSV exporter.
+ *
+ * Produces one row per evaluated item and flattens failure arrays into compact
+ * semicolon-delimited cells suitable for spreadsheet tools.
+ */
+
 
 export function exportToCsv(
   result: EvaluationResult,

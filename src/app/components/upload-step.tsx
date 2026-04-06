@@ -11,6 +11,13 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
+/**
+ * Upload step UI.
+ *
+ * Supports drag-and-drop, file picker uploads, and sample dataset bootstrap
+ * that routes through the same parsing/evaluation workflow.
+ */
+
 export function UploadStep({
   error,
   parseErrors,

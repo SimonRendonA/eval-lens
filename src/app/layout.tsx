@@ -16,9 +16,17 @@ const dmMono = DM_Mono({
   variable: "--font-dm-mono",
 });
 
+const configuredSiteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
+const metadataBase = new URL(configuredSiteUrl ?? "http://localhost:3000");
+
 export const metadata: Metadata = {
-  title: "EvalLens",
-  description: "Evaluate structured LLM outputs with precision.",
+  metadataBase,
+  title: "EvalLens - Evaluate LLM Structured Outputs",
+  description:
+    "Catch schema drift before production. Evaluate structured LLM outputs and inspect failures row by row.",
   icons: {
     icon: "/eval-lens/logo/favicon.svg",
     apple: "/eval-lens/logo/apple-touch-icon.png",
@@ -26,21 +34,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "EvalLens",
-    title: "EvalLens",
-    description: "Evaluate structured LLM outputs with precision.",
+    title: "EvalLens - Evaluate LLM Structured Outputs",
+    description:
+      "Catch schema drift before production. Evaluate structured LLM outputs with clear, row-level failure reasons.",
     images: [
       {
         url: "/eval-lens/logo/og-image.png",
         width: 1200,
         height: 630,
-        alt: "EvalLens - Evaluate structured LLM outputs with precision.",
+        alt: "EvalLens dashboard for structured LLM output evaluation.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "EvalLens",
-    description: "Evaluate structured LLM outputs with precision.",
+    title: "EvalLens - Evaluate LLM Structured Outputs",
+    description:
+      "Catch schema drift before production and inspect row-level failures.",
     images: ["/eval-lens/logo/og-image.png"],
   },
 };

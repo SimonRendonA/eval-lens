@@ -4,6 +4,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
+/**
+ * Collapsible parser warning summary.
+ *
+ * Surfaces non-fatal row parse issues so users can continue evaluation while
+ * still seeing exactly which rows were skipped and why.
+ */
+
 export function ParseWarnings({
   errors,
 }: {

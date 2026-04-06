@@ -7,6 +7,13 @@ import {
 } from "../types";
 import { validateAgainstSchema } from "../schema";
 
+/**
+ * Single-row evaluator.
+ *
+ * Parses expected/actual JSON, runs structural schema checks, then compares
+ * values for structurally valid fields to produce one `RowResult`.
+ */
+
 /** Maps a runtime value to its SchemaField type tag. */
 function getType(value: unknown): SchemaField["type"] {
   if (value === null) return "null";

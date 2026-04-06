@@ -2,6 +2,13 @@ import { EvaluationResult, FailureReason, ExportMeta } from "../types";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+/**
+ * PDF exporter.
+ *
+ * Generates a branded multi-page report (dark theme) with summary cards,
+ * failure tables, and paginated row details using jsPDF + autotable.
+ */
+
 const BRAND: [number, number, number] = [0, 212, 170];
 const PASS: [number, number, number] = [34, 197, 94];
 const FAIL: [number, number, number] = [239, 68, 68];

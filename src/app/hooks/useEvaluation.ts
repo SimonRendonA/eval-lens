@@ -13,6 +13,14 @@ import {
 } from "@/lib/types";
 import { AvailableProvider } from "@/lib/providers";
 
+/**
+ * Main client-side orchestration hook for EvalLens.
+ *
+ * Owns the end-to-end workflow state machine:
+ * upload -> schema -> generating? -> evaluating -> results
+ * and coordinates parsing, schema inference, optional generation, and scoring.
+ */
+
 type Step = "upload" | "schema" | "generating" | "evaluating" | "results";
 
 export default function useEvaluation() {

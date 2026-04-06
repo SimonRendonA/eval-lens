@@ -1,5 +1,12 @@
 import { RawDatasetRow, InferredSchema, SchemaField } from "../types";
 
+/**
+ * Schema inference module.
+ *
+ * Builds an inferred field contract from `expected` JSON objects across all
+ * rows (field names, primitive/object types, and requiredness).
+ */
+
 /** Maps a runtime value to its SchemaField type tag. */
 function detectType(value: unknown): SchemaField["type"] {
   if (value === null) return "null";
