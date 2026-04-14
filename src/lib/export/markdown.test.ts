@@ -10,7 +10,6 @@ function makeResult(overrides: Partial<EvaluationResult> = {}): EvaluationResult
       failed: 1,
       passRate: 2 / 3,
       failureReasons: {
-        SCHEMA_MISMATCH: 0,
         MISSING_FIELD: 0,
         WRONG_TYPE: 0,
         WRONG_VALUE: 1,
@@ -88,7 +87,6 @@ describe("exportToMarkdown", () => {
           failed: 0,
           passRate: 1,
           failureReasons: {
-            SCHEMA_MISMATCH: 0,
             MISSING_FIELD: 0,
             WRONG_TYPE: 0,
             WRONG_VALUE: 0,
@@ -120,7 +118,6 @@ describe("exportToMarkdown", () => {
           failed: 0,
           passRate: 1,
           failureReasons: {
-            SCHEMA_MISMATCH: 0,
             MISSING_FIELD: 0,
             WRONG_TYPE: 0,
             WRONG_VALUE: 0,
@@ -181,7 +178,6 @@ describe("exportToMarkdown", () => {
           failed: 0,
           passRate: 1,
           failureReasons: {
-            SCHEMA_MISMATCH: 0,
             MISSING_FIELD: 0,
             WRONG_TYPE: 0,
             WRONG_VALUE: 0,

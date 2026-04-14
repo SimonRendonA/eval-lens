@@ -3,36 +3,29 @@ import {
   InferredSchema,
   RowResult,
   Failure,
-  SchemaField,
 } from "../types";
 import { validateAgainstSchema } from "../schema";
-
-/**
- * Single-row evaluator.
- *
- * Parses expected/actual JSON, runs structural schema checks, then compares
- * values for structurally valid fields to produce one `RowResult`.
- */
-
-/** Maps a runtime value to its SchemaField type tag. */
-function getType(value: unknown): SchemaField["type"] {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "array";
-  const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === "object")
-    return t;
-  return "string";
-}
+import { getValueType } from "../utils";
 
 /**
  * Deep-equality check for two values.
- * Objects and arrays are compared via JSON serialisation;
- * primitives are compared with strict equality.
+ * Objects are compared recursively by key, ignoring insertion order.
+ * Arrays are compared by JSON serialisation (order is significant for arrays).
+ * Primitives are compared with strict equality.
  */
 function valuesEqual(a: unknown, b: unknown): boolean {
-  const typeA = getType(a);
-  if (typeA === "object" || typeA === "array") {
+  const typeA = getValueType(a);
+  if (typeA === "array") {
     return JSON.stringify(a) === JSON.stringify(b);
+  }
+  if (typeA === "object") {
+    const objA = a as Record<string, unknown>;
+    const objB = b as Record<string, unknown>;
+    const keysA = Object.keys(objA).sort();
+    const keysB = Object.keys(objB).sort();
+    if (keysA.length !== keysB.length) return false;
+    if (JSON.stringify(keysA) !== JSON.stringify(keysB)) return false;
+    return keysA.every((k) => valuesEqual(objA[k], objB[k]));
   }
   return a === b;
 }

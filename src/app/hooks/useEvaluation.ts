@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { evaluateDataset } from "@/lib/evaluator";
 import { parseFile } from "@/lib/parsers";
 import { inferSchema } from "@/lib/schema";
@@ -33,6 +33,8 @@ export default function useEvaluation() {
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [rawRows, setRawRows] = useState<RawDatasetRow[]>([]);
+  // AbortController for the active generation stream — cancelled on reset or new upload
+  const generateAbortRef = useRef<AbortController | null>(null);
   const [parseErrors, setParseErrors] = useState<ParseError[]>([]);
   const [schema, setSchema] = useState<InferredSchema | null>(null);
   const [result, setResult] = useState<EvaluationResult | null>(null);
@@ -144,6 +146,10 @@ export default function useEvaluation() {
     setNarrative(null);
     setNarrativeError(null);
     setStep("evaluating");
+    // Defer evaluation by one frame so React can paint the "evaluating" spinner
+    // before the synchronous work blocks the main thread.
+    // NOTE: for very large datasets (>1 000 rows) this will still cause a
+    // perceptible freeze. Moving evaluation to a Web Worker is the long-term fix.
     setTimeout(() => {
       const evalResult = evaluateDataset(rawRows, schema);
       setResult(evalResult);
@@ -153,16 +159,25 @@ export default function useEvaluation() {
 
   const handleGenerate = (providerId: string, model: string) => {
     if (!schema) return;
+    if (
+      !["openai", "anthropic", "gemini"].includes(providerId)
+    ) return;
+    const validProviderId = providerId as AvailableProvider["id"];
 
     const rowsToGenerate = rawRows
       .filter((row) => !row.actual || row.actual === "")
       .map((row) => ({ id: row.id, prompt: row.prompt }));
 
-    setSelectedProvider(providerId as AvailableProvider["id"]);
+    setSelectedProvider(validProviderId);
     setSelectedModel(model);
     setGeneratedRowCount(rowsToGenerate.length);
     setGenerationProgress(0);
     setGenerationTotal(rowsToGenerate.length);
+
+    // Cancel any in-flight stream before starting a new one
+    generateAbortRef.current?.abort();
+    const abortController = new AbortController();
+    generateAbortRef.current = abortController;
 
     generateWithStream(rowsToGenerate, providerId, model, {
       onProgress: (index, total) => {
@@ -181,13 +196,14 @@ export default function useEvaluation() {
         });
 
         setRawRows(mergedRows);
-        setSelectedProvider(providerId as AvailableProvider["id"]);
+        setSelectedProvider(validProviderId);
         setSelectedModel(model);
         setNarrativeStatus("idle");
         setNarrative(null);
         setNarrativeError(null);
         setStep("evaluating");
 
+        // Same deferred-evaluation pattern as confirmSchema — see note above.
         setTimeout(() => {
           const evalResult = evaluateDataset(mergedRows, schema);
           setResult(evalResult);
@@ -198,7 +214,7 @@ export default function useEvaluation() {
         setError(errorMsg);
         setStep("schema");
       },
-    });
+    }, abortController.signal);
   };
 
   const triggerNarrative = async () => {
@@ -271,6 +287,9 @@ export default function useEvaluation() {
   };
 
   const reset = () => {
+    // Cancel any in-flight generation stream
+    generateAbortRef.current?.abort();
+    generateAbortRef.current = null;
     setStep("upload");
     setFile(null);
     setRawRows([]);
@@ -314,5 +333,6 @@ export default function useEvaluation() {
     handleGenerate,
     triggerNarrative,
     reset,
+    setError,
   };
 }

@@ -1,5 +1,5 @@
 import Papa from "papaparse";
-import { RawDatasetRow } from "../types";
+import { RawDatasetRow, ParseError } from "../types";
 
 /**
  * CSV parser implementation.
@@ -8,12 +8,8 @@ import { RawDatasetRow } from "../types";
  * issues without aborting the entire dataset unless headers are invalid.
  */
 
-const REQUIRED_COLUMNS = ["id", "prompt", "expected"] as const;
 
-type ParseError = {
-  row: number | string;
-  message: string;
-};
+const REQUIRED_COLUMNS = ["id", "prompt", "expected"] as const;
 
 type CsvParseResult = {
   rows: RawDatasetRow[];

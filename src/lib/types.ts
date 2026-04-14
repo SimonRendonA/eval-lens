@@ -2,7 +2,6 @@ import type { NarrativeResponse } from "@/lib/narrative";
 
 /** The category of a single evaluation failure. */
 export type FailureReason =
-  | "SCHEMA_MISMATCH"
   | "MISSING_FIELD"
   | "WRONG_TYPE"
   | "WRONG_VALUE"

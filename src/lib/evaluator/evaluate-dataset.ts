@@ -14,7 +14,6 @@ import { evaluateRow } from "./evaluate-row";
  */
 
 const ALL_FAILURE_REASONS: FailureReason[] = [
-  "SCHEMA_MISMATCH",
   "MISSING_FIELD",
   "WRONG_TYPE",
   "WRONG_VALUE",

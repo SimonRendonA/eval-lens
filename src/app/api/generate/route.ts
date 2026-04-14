@@ -1,4 +1,4 @@
-import { createProvider } from "@/lib/providers";
+import { createProviderFromEnv, getAvailableProviderById } from "@/lib/providers";
 
 /**
  * Streaming generation endpoint.
@@ -8,14 +8,35 @@ import { createProvider } from "@/lib/providers";
  * time without polling.
  */
 
-const KEY_MAP: Record<string, string> = {
-  openai: "OPENAI_API_KEY",
-  anthropic: "ANTHROPIC_API_KEY",
-  gemini: "GEMINI_API_KEY",
-};
+const VALID_PROVIDER_IDS = ["openai", "anthropic", "gemini"] as const;
+type ValidProviderId = (typeof VALID_PROVIDER_IDS)[number];
+
+/** Max rows accepted per request to prevent runaway quota usage. */
+const MAX_ROWS = 500;
+
+/**
+ * Inter-row delay (ms) to avoid hitting provider rate limits.
+ * Configurable via GENERATION_DELAY_MS environment variable.
+ */
+function getInterRowDelay(): number {
+  const raw = process.env.GENERATION_DELAY_MS;
+  if (!raw) return 100;
+  const parsed = parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 100;
+}
 
 export async function POST(req: Request) {
-  const { rows, providerId, model } = await req.json();
+  let body: { rows: unknown; providerId: unknown; model: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON body" }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  const { rows, providerId, model } = body;
 
   if (!rows || !providerId || !model) {
     return new Response(
@@ -24,8 +45,54 @@ export async function POST(req: Request) {
     );
   }
 
+  if (!Array.isArray(rows)) {
+    return new Response(
+      JSON.stringify({ error: "rows must be an array" }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  if (rows.length > MAX_ROWS) {
+    return new Response(
+      JSON.stringify({ error: `rows exceeds maximum of ${MAX_ROWS}` }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  if (
+    typeof providerId !== "string" ||
+    !VALID_PROVIDER_IDS.includes(providerId as ValidProviderId)
+  ) {
+    return new Response(
+      JSON.stringify({ error: `Unknown provider: ${providerId}` }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  if (typeof model !== "string") {
+    return new Response(
+      JSON.stringify({ error: "model must be a string" }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  const validProviderId = providerId as ValidProviderId;
+
+  // Validate model is in the allow-list for this provider
+  const providerInfo = getAvailableProviderById(process.env, validProviderId);
+  if (
+    providerInfo &&
+    !providerInfo.config.availableModels.includes(model)
+  ) {
+    return new Response(
+      JSON.stringify({ error: `Unknown model '${model}' for provider '${validProviderId}'` }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   const useMock = process.env.USE_MOCK_GENERATION === "true";
   const total = rows.length;
+  const interRowDelay = getInterRowDelay();
 
   let generateFn: (prompt: string) => Promise<string>;
 
@@ -40,24 +107,15 @@ export async function POST(req: Request) {
       return mockOutput(prompt);
     };
   } else {
-    const envKey = KEY_MAP[providerId];
-    if (!envKey) {
+    try {
+      const provider = createProviderFromEnv(validProviderId, process.env);
+      generateFn = (prompt: string) => provider.generateOutput(prompt, model);
+    } catch {
       return new Response(
-        JSON.stringify({ error: `Unknown provider: ${providerId}` }),
+        JSON.stringify({ error: `API key not configured for ${validProviderId}` }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
-
-    const apiKey = process.env[envKey];
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: `API key not configured for ${providerId}` }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    const provider = createProvider(providerId, apiKey);
-    generateFn = (prompt: string) => provider.generateOutput(prompt, model);
   }
 
   const stream = new ReadableStream({
@@ -69,7 +127,7 @@ export async function POST(req: Request) {
       };
 
       for (let i = 0; i < total; i++) {
-        const row = rows[i];
+        const row = rows[i] as { id: string; prompt: string };
 
         try {
           const actual = await generateFn(row.prompt);
@@ -81,18 +139,21 @@ export async function POST(req: Request) {
             total,
           });
         } catch (err) {
+          // Send a dedicated error event so the client can surface it
+          // without the error string being treated as a parseable actual value.
           send({
             id: row.id,
             prompt: row.prompt,
-            actual: `Error: ${err instanceof Error ? err.message : String(err)}`,
+            actual: "",
             error: true,
+            errorMessage: err instanceof Error ? err.message : String(err),
             index: i,
             total,
           });
         }
 
-        if (!useMock && i < total - 1) {
-          await new Promise((r) => setTimeout(r, 100));
+        if (!useMock && i < total - 1 && interRowDelay > 0) {
+          await new Promise((r) => setTimeout(r, interRowDelay));
         }
       }
 

@@ -12,7 +12,6 @@ function makeResult(rows: EvaluationResult["rowResults"]): EvaluationResult {
       failed,
       passRate: rows.length > 0 ? passed / rows.length : 0,
       failureReasons: {
-        SCHEMA_MISMATCH: 0,
         MISSING_FIELD: 0,
         WRONG_TYPE: 0,
         WRONG_VALUE: rows.filter((r) => r.failures.some((f) => f.reason === "WRONG_VALUE")).length,
@@ -30,7 +29,7 @@ describe("exportToCsv", () => {
       const result = makeResult([]);
       const csv = exportToCsv(result);
       const lines = csv.split("\n");
-      expect(lines[5]).toBe("id,status,failure_reasons,failure_details");
+      expect(lines[4]).toBe("id,status,failure_reasons,failure_details");
     });
 
     it("produces one data row per result row", () => {
@@ -39,7 +38,7 @@ describe("exportToCsv", () => {
         { id: "2", status: "pass", failures: [] },
       ]);
       const lines = exportToCsv(result).split("\n");
-      expect(lines).toHaveLength(8); // comments + blank + header + 2 rows
+      expect(lines).toHaveLength(7); // 3 comments + blank + header + 2 rows
     });
   });
 
@@ -47,7 +46,7 @@ describe("exportToCsv", () => {
     it("outputs pass row with empty failure columns", () => {
       const result = makeResult([{ id: "1", status: "pass", failures: [] }]);
       const csv = exportToCsv(result);
-      const dataLine = csv.split("\n")[6];
+      const dataLine = csv.split("\n")[5];
       expect(dataLine).toBe("1,pass,,");
     });
   });

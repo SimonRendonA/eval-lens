@@ -22,10 +22,12 @@ export function UploadStep({
   error,
   parseErrors,
   onFileUpload,
+  onError,
 }: {
   error: string | null;
   parseErrors: { row: number | string; message: string }[];
   onFileUpload: (file: File, isSample: boolean) => void;
+  onError: (message: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -79,8 +81,7 @@ export function UploadStep({
         onFileUpload(sampleFile, true);
       })
       .catch(() => {
-        // Handle error if sample file fails to load
-        alert("Failed to load sample dataset. Please try again.");
+        onError("Failed to load sample dataset. Please try again.");
       });
   };
 

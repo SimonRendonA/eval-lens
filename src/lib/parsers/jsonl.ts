@@ -1,4 +1,4 @@
-import { RawDatasetRow } from "../types";
+import { RawDatasetRow, ParseError } from "../types";
 
 /**
  * JSONL/JSON parser implementation.
@@ -8,11 +8,6 @@ import { RawDatasetRow } from "../types";
  */
 
 const REQUIRED_KEYS = ["id", "prompt", "expected"] as const;
-
-type ParseError = {
-  row: number | string;
-  message: string;
-};
 
 type JsonlParseResult = {
   rows: RawDatasetRow[];

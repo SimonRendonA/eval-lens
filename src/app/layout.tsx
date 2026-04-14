@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import { DM_Sans, DM_Mono, Geist } from "next/font/google";
+import { DM_Mono, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
 
+// Geist is the UI typeface. Its CSS variable is consumed by `font-sans` in
+// Tailwind, so applying `geist.variable` on <html> is sufficient.
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-});
 
 const dmMono = DM_Mono({
   weight: ["400", "500"],
@@ -61,8 +59,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className={`${dmSans.className} ${dmMono.variable} antialiased`}>
+    <html lang="en" className={cn("font-sans", geist.variable, dmMono.variable)}>
+      <body className="antialiased">
         {children}
         <Analytics />
       </body>

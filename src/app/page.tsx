@@ -43,6 +43,7 @@ export default function Home() {
     handleGenerate,
     triggerNarrative,
     reset,
+    setError,
   } = useEvaluation();
 
   const rowsNeedingGeneration = rawRows.filter(
@@ -371,6 +372,7 @@ export default function Home() {
                 error={error}
                 parseErrors={parseErrors}
                 onFileUpload={handleFileUpload}
+                onError={setError}
               />
             </section>
           </div>

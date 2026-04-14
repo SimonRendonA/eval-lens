@@ -1,4 +1,5 @@
 import { RawDatasetRow, InferredSchema, SchemaField } from "../types";
+import { getValueType } from "../utils";
 
 /**
  * Schema inference module.
@@ -6,16 +7,6 @@ import { RawDatasetRow, InferredSchema, SchemaField } from "../types";
  * Builds an inferred field contract from `expected` JSON objects across all
  * rows (field names, primitive/object types, and requiredness).
  */
-
-/** Maps a runtime value to its SchemaField type tag. */
-function detectType(value: unknown): SchemaField["type"] {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "array";
-  const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === "object")
-    return t;
-  return "string";
-}
 
 /**
  * Infers a schema by scanning the `expected` field of every row.
@@ -70,7 +61,7 @@ export function inferSchema(rows: RawDatasetRow[]): InferredSchema {
   for (const key of allKeys) {
     // Determine type from the first row that has this key
     const firstRow = parsedRows.find((row) => key in row);
-    const type = firstRow ? detectType(firstRow[key]) : "string";
+    const type = firstRow ? getValueType(firstRow[key]) : "string";
 
     // A field is required if it appears in every row
     const appearances = parsedRows.filter((row) => key in row).length;
