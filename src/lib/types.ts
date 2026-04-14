@@ -1,3 +1,5 @@
+import type { NarrativeResponse } from "@/lib/narrative";
+
 /** The category of a single evaluation failure. */
 export type FailureReason =
   | "SCHEMA_MISMATCH"
@@ -87,6 +89,12 @@ export type ParseError = {
 };
 
 export type ExportMeta = {
+  mode?: "hosted" | "self-hosted";
+  fileName?: string;
+  isSample?: boolean;
+  outputSource?: "uploaded" | "generated";
+  generatedRowCount?: number;
   provider?: string;
   model?: string;
+  narrative?: NarrativeResponse;
 };

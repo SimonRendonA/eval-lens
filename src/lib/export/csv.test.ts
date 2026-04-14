@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { exportToCsv } from "./csv";
-import type { EvaluationResult } from "../types";
+import type { EvaluationResult, ExportMeta } from "../types";
 
 function makeResult(rows: EvaluationResult["rowResults"]): EvaluationResult {
   const passed = rows.filter((r) => r.status === "pass").length;
@@ -30,7 +30,7 @@ describe("exportToCsv", () => {
       const result = makeResult([]);
       const csv = exportToCsv(result);
       const lines = csv.split("\n");
-      expect(lines[0]).toBe("id,status,failure_reasons,failure_details");
+      expect(lines[5]).toBe("id,status,failure_reasons,failure_details");
     });
 
     it("produces one data row per result row", () => {
@@ -39,7 +39,7 @@ describe("exportToCsv", () => {
         { id: "2", status: "pass", failures: [] },
       ]);
       const lines = exportToCsv(result).split("\n");
-      expect(lines).toHaveLength(3); // header + 2 rows
+      expect(lines).toHaveLength(8); // comments + blank + header + 2 rows
     });
   });
 
@@ -47,8 +47,44 @@ describe("exportToCsv", () => {
     it("outputs pass row with empty failure columns", () => {
       const result = makeResult([{ id: "1", status: "pass", failures: [] }]);
       const csv = exportToCsv(result);
-      const dataLine = csv.split("\n")[1];
+      const dataLine = csv.split("\n")[6];
       expect(dataLine).toBe("1,pass,,");
+    });
+  });
+
+  describe("report metadata comments", () => {
+    it("includes hosted comments by default", () => {
+      const csv = exportToCsv(makeResult([]));
+      expect(csv).toContain("# Mode: hosted");
+      expect(csv).toContain("# Output source: uploaded");
+    });
+
+    it("includes self-hosted provider and narrative comments when present", () => {
+      const meta: ExportMeta = {
+        mode: "self-hosted",
+        outputSource: "generated",
+        generatedRowCount: 5,
+        provider: "gemini",
+        model: "gemini-2.5-pro",
+        narrative: {
+          summary: "Most failures come from schema drift.",
+          patterns: [
+            {
+              title: "Schema drift",
+              description: "Nested fields are omitted or renamed.",
+              affectedCount: 4,
+              exampleIds: ["3", "4"],
+            },
+          ],
+          recommendation: "Pin the JSON schema in the system prompt.",
+        },
+      };
+
+      const csv = exportToCsv(makeResult([]), meta);
+      expect(csv).toContain("# Provider: gemini");
+      expect(csv).toContain("# Generated rows: 5");
+      expect(csv).toContain("# Failure analysis summary: Most failures come from schema drift.");
+      expect(csv).toContain("# Recommended next step: Pin the JSON schema in the system prompt.");
     });
   });
 
