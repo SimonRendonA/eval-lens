@@ -25,7 +25,7 @@ The app walks users through a linear pipeline. Each step maps to a state in the 
 upload → schema → [generating] → evaluating → results
 ```
 
-The `generating` step only appears in self-hosted mode when the file has no `actual` column.
+The `generating` step only appears in self-hosted mode when the file has no `actual` column. Within the `results` step, users can optionally trigger **Failure Analysis** (self-hosted only), which makes an additional API call and renders the narrative inline.
 
 ---
 
@@ -198,7 +198,7 @@ WRONG_VALUE  → field is structurally correct but the value differs
 
 ## Step 5 — Results
 
-**What the user sees:** Summary cards, a filterable table, a side panel inspector, and an export menu.
+**What the user sees:** Summary cards, a filterable table, a side panel inspector, an export menu, and — in self-hosted mode — a **Failure Analysis** panel.
 
 **What happens in code:**
 
@@ -212,18 +212,62 @@ Clicking a row opens `RowInspector`, a slide-out sheet that shows the raw expect
 
 ---
 
+## Step 6 — Failure Analysis (self-hosted only)
+
+**What the user sees:** An "Analyse failures" button in the results panel. On click, it enters a loading state and then renders a narrative: a summary paragraph, a list of named failure patterns (each with a description, affected row count, and example row IDs), and a recommended next step.
+
+**What happens in code:**
+
+1. `triggerNarrative()` in `useEvaluation` collects all failed rows from the current result and POSTs them to `/api/narrative`.
+2. The route validates the request, checks `EVALLENS_MODE === "self-hosted"`, resolves the provider and API key using `createProviderFromEnv`, and calls `buildNarrativePrompt(failedRows)` from `src/lib/narrative/generator.ts`.
+3. The prompt samples up to 20 representative failed rows and asks the model to identify failure patterns.
+4. The response is parsed by `parseNarrativeResponse(text)` which strips markdown fences and validates the JSON shape into a `NarrativeResponse`.
+5. The hook stores the result in `narrative` state and surfaces it to `NarrativePanel` via `ResultsStep`.
+
+The `NarrativeResponse` shape:
+
+```ts
+type NarrativeResponse = {
+  summary: string;
+  patterns: NarrativePattern[];
+  recommendation: string;
+};
+
+type NarrativePattern = {
+  title: string;
+  description: string;
+  affectedCount: number;
+  exampleIds: string[];
+};
+```
+
+---
+
 ## Export
 
-The export menu lets users download results in four formats. All exports are generated entirely in the browser from the `EvaluationResult` object that's already in memory.
+The export menu lets users download results in four formats. All exports are generated entirely in the browser from the `EvaluationResult` object and an optional `ExportMeta` bag that carries run context and the failure analysis narrative.
+
+```ts
+type ExportMeta = {
+  mode?: "hosted" | "self-hosted";
+  fileName?: string;
+  isSample?: boolean;
+  outputSource?: "uploaded" | "generated";
+  generatedRowCount?: number;
+  provider?: string;
+  model?: string;
+  narrative?: NarrativeResponse; // populated after failure analysis
+};
+```
 
 | Format | Function | Notes |
-|--------|----------|-------|
-| CSV | `exportToCsv(result)` | One row per result, semicolon-separated failure lists |
-| JSON | `exportToJson(result)` | Pretty-printed, full lossless representation |
-| Markdown | `exportToMarkdown(result)` | Summary table + per-failure details |
-| PDF | `exportToPdf(result)` | Generated via jsPDF; calls `doc.save()` directly |
+|--------|----------| ------|
+| CSV | `exportToCsv(result, meta)` | Comment header block with mode, provider, model, narrative summary |
+| JSON | `exportToJson(result, meta)` | `meta` block + optional `failureAnalysis` field |
+| Markdown | `exportToMarkdown(result, meta)` | Run Context table, Highlights, Failure Breakdown, Failure Analysis sections |
+| PDF | `exportToPdf(result, meta)` | Context panel, full failure detail snapshot (no truncation), narrative section |
 
-CSV, JSON, and Markdown call `downloadFile(content, filename, mimeType)` which creates a temporary `<a>` element, clicks it, and cleans up.
+CSV, JSON, and Markdown call `downloadFile(content, filename, mimeType)` which creates a temporary `<a>` element, clicks it, and cleans up. PDF calls `doc.save()` directly via jsPDF.
 
 ---
 
@@ -250,6 +294,20 @@ Returns the deployment mode and available providers. Called once on page load.
 
 Accepts a list of rows and streams generated outputs as SSE. Only reachable in self-hosted mode — the route validates this before processing. See Step 3 above for the full flow.
 
+### `POST /api/narrative`
+
+Accepts a list of failed rows and a provider ID. Only reachable in self-hosted mode. Returns a `NarrativeResponse` containing a summary, failure patterns, and a recommendation.
+
+```ts
+// Request body
+{ failedRows: NarrativeRow[], provider: "openai" | "anthropic" | "gemini" }
+
+// Response
+{ summary: string, patterns: NarrativePattern[], recommendation: string }
+```
+
+The route uses `createProviderFromEnv(provider, process.env)` to resolve the API key without duplicating key-map logic from the provider abstraction.
+
 ---
 
 ## How the Pieces Fit Together
@@ -262,7 +320,8 @@ Browser
 │   ├── handleFileUpload  → parseFile → inferSchema
 │   ├── confirmSchema     → decides: generate or evaluate?
 │   ├── handleGenerate    → generateWithStream → POST /api/generate (SSE)
-│   └── (after generate)  → evaluateDataset → setState(result)
+│   ├── (after generate)  → evaluateDataset → setState(result)
+│   └── triggerNarrative  → POST /api/narrative → setState(narrative)
 │
 ├── Components (read state, call hook handlers)
 │   ├── UploadStep
@@ -271,14 +330,16 @@ Browser
 │   ├── EvaluatingStep
 │   └── ResultsStep
 │       ├── RowInspector
-│       └── ExportMenu
+│       ├── ExportMenu
+│       └── NarrativePanel  (self-hosted only)
 │
 └── src/lib/ (pure functions, no React)
     ├── parsers/   parseFile → parseCsv / parseJsonl
     ├── schema/    inferSchema, validateAgainstSchema
     ├── evaluator/ evaluateRow, evaluateDataset
     ├── export/    exportToCsv/Json/Markdown/Pdf, downloadFile
-    └── providers/ createProvider, getAvailableProviders
+    ├── providers/ createProvider, createProviderFromEnv, getAvailableProviders
+    └── narrative/ buildNarrativePrompt, parseNarrativeResponse
 ```
 
 ---
@@ -286,6 +347,10 @@ Browser
 ## Key Design Decisions
 
 **`src/lib/` has zero React dependencies.** Every evaluation function is a plain TypeScript function that takes data and returns data. This makes them trivially testable and reusable outside the UI.
+
+**Runtime mode gating, not build-time.** `EVALLENS_MODE` is read server-side only. The client learns the mode by calling `GET /api/config` on mount. This means a single Docker image can run in either mode based on the environment variable injected at runtime — no rebuild required.
+
+**`actual` defaults to `""`** when the column is absent. This makes the "no actual yet" state representable without a separate field, and keeps the `RawDatasetRow` type simple. An empty string always fails JSON parsing, which triggers `UNPARSEABLE` — the correct failure for an ungenerated row.
 
 **`actual` defaults to `""`** when the column is absent. This makes the "no actual yet" state representable without a separate field, and keeps the `RawDatasetRow` type simple. An empty string always fails JSON parsing, which triggers `UNPARSEABLE` — the correct failure for an ungenerated row.
 

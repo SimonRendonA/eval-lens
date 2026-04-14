@@ -83,7 +83,8 @@ Only set the API keys for providers you want to use. At least one is required fo
 3. **Generate** *(self-hosted only)* — If `actual` values are missing, select a provider and model to generate them
 4. **Evaluate** — Each row is checked for schema conformance and value correctness
 5. **Inspect** — Browse results with filters, click any row to see exactly why it passed or failed
-6. **Export** — Download results as CSV, JSON, Markdown, or a branded PDF report
+6. **Failure Analysis** *(self-hosted only)* — Trigger an AI-powered narrative that summarises failure patterns, groups affected rows, and recommends a next action
+7. **Export** — Download results as CSV, JSON, Markdown, or a branded PDF report — all formats include run context and, where available, the failure analysis narrative
 
 ## Dataset Format
 
@@ -137,14 +138,12 @@ EvalLens doesn't just say "fail." It tells you *why*:
 
 ## Export Formats
 
-Export your evaluation results in four formats:
+All four formats include **run context metadata** (mode, file name, output source). Self-hosted exports additionally include the provider, model, generated row count, and — if triggered — the full failure analysis narrative.
 
-- **CSV** — Raw results for spreadsheet analysis
-- **JSON** — Structured data for programmatic use
-- **Markdown** — Human-readable report (the primary persistence format)
-- **PDF** — Branded dark-mode report for sharing
-
-Self-hosted exports include the provider and model used for generation.
+- **CSV** — Raw results with a metadata comment header block
+- **JSON** — Structured data with a `meta` block and optional `failureAnalysis` field
+- **Markdown** — Human-readable report with Run Context, Highlights, Failure Breakdown, and Failure Analysis sections
+- **PDF** — Branded dark-mode report with a context panel, full failure detail snapshot (no truncation), and a narrative section when analysis is available
 
 ## Tech Stack
 
@@ -164,27 +163,31 @@ src/
 │   ├── schema/             # Schema inference and validation
 │   ├── evaluator/          # Row evaluation and failure classification
 │   ├── export/             # Report generators (CSV, JSON, MD, PDF)
-│   └── providers/          # AI provider abstraction (self-hosted)
+│   ├── providers/          # AI provider abstraction (self-hosted)
+│   └── narrative/          # Failure analysis prompt builder and response parser
 └── app/                    # Next.js UI layer
     ├── layout.tsx
     ├── page.tsx
     ├── hooks/
     │   └── useEvaluation.ts
     ├── components/         # Step components
-    └── api/                # API routes (config, generate)
+    └── api/                # API routes (config, generate, narrative)
 ```
 
 The `src/lib` engine has zero React dependencies. It can be used standalone, in a CLI, or with a different framework.
 
 ## Self-Hosted Mode
 
-Self-hosted mode adds AI provider integration so you can generate `actual` outputs before evaluating them.
+Self-hosted mode adds two capabilities on top of the hosted workflow:
+
+1. **Generate actuals** — select a provider and model to fill in missing `actual` values before evaluating
+2. **Failure Analysis** — after evaluation, trigger an AI-generated narrative that identifies failure patterns, groups affected rows, and recommends a fix direction. The analysis is embedded into all exported reports.
 
 ### Environment Variables
 
 | Variable | Description |
 |----------|-------------|
-| `EVALLENS_MODE` | Set to `self-hosted` to enable provider features |
+| `EVALLENS_MODE` | Set to `self-hosted` to enable provider-based generation and failure analysis |
 | `OPENAI_API_KEY` | OpenAI API key |
 | `ANTHROPIC_API_KEY` | Anthropic API key |
 | `GEMINI_API_KEY` | Google Gemini API key |
@@ -205,6 +208,8 @@ Self-hosted mode adds AI provider integration so you can generate `actual` outpu
 3. If `actual` is missing, select a provider and model
 4. Watch real-time progress as outputs are generated via SSE
 5. Review evaluation results
+6. *(Optional)* Click **Analyse failures** to generate an AI narrative — patterns, affected row counts, and a recommended next step
+7. Export — all formats embed the run context and failure analysis
 
 ## Contributing
 
