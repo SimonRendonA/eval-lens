@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Search, ShieldCheck, Upload } from "lucide-react";
+import { Search, ShieldCheck, Upload, Lightbulb } from "lucide-react";
 import useEvaluation from "./hooks/useEvaluation";
 import { Button } from "@/components/ui/button";
 import type { ExportMeta } from "@/lib/types";
@@ -87,6 +87,13 @@ export default function Home() {
       title: "Inspect",
       description: "Filter row-level failures and diagnose regressions quickly.",
       Icon: Search,
+    },
+    {
+      step: "04",
+      title: "Analyse",
+      description:
+        "Self-hosted: generate an AI narrative of failure patterns and get a recommended next step.",
+      Icon: Lightbulb,
     },
   ];
 
@@ -199,6 +206,7 @@ export default function Home() {
                       "Regression evals",
                       "Extraction QA",
                       "Classification audits",
+                      "AI failure analysis",
                       "Docker deployable",
                     ].map((item) => (
                       <span
@@ -249,7 +257,7 @@ export default function Home() {
 
             <section className="landing-reveal space-y-4" style={{ animationDelay: "80ms" }}>
               <h2 className="text-2xl font-bold">How it works</h2>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {stepCards.map((item, index) => (
                   <article
                     key={item.title}
@@ -290,6 +298,11 @@ export default function Home() {
                   <p className="mt-2 text-sm text-muted-foreground">
                     Run EvalLens in your own environment for private datasets and controlled provider keys.
                   </p>
+                  <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+                    <li>Generate missing <span className="font-mono">actual</span> outputs before evaluating.</li>
+                    <li>Trigger AI-powered failure analysis — patterns, affected rows, and a fix recommendation.</li>
+                    <li>All four export formats embed run context and the narrative.</li>
+                  </ul>
                   <div className="mt-3 rounded-lg border border-border bg-elevated px-3 py-2 font-mono text-xs text-text-secondary">
                     docker run -p 3000:3000 -e EVALLENS_MODE=self-hosted evallens
                   </div>
@@ -330,6 +343,8 @@ export default function Home() {
                   <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                     <li>Generates missing <span className="font-mono">actual</span> outputs before scoring.</li>
                     <li>Bring your own OpenAI, Anthropic, or Gemini key.</li>
+                    <li>After evaluation, trigger AI failure analysis — named patterns, affected row counts, and a recommended next step.</li>
+                    <li>All exports (CSV, JSON, MD, PDF) embed run context and the narrative.</li>
                     <li>Deploy with Docker quickly for local or server environments.</li>
                     <li>Deterministic eval workflow for local, staging, or CI.</li>
                   </ul>
