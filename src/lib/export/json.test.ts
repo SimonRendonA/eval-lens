@@ -9,7 +9,6 @@ const sampleResult: EvaluationResult = {
     failed: 1,
     passRate: 0.5,
     failureReasons: {
-      SCHEMA_MISMATCH: 0,
       MISSING_FIELD: 0,
       WRONG_TYPE: 0,
       WRONG_VALUE: 1,
