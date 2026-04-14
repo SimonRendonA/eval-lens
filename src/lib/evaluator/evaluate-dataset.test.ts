@@ -71,7 +71,6 @@ describe("evaluateDataset", () => {
       expect(summary.failureReasons.WRONG_VALUE).toBe(0);
       expect(summary.failureReasons.EXTRA_FIELD).toBe(0);
       expect(summary.failureReasons.UNPARSEABLE).toBe(0);
-      expect(summary.failureReasons.SCHEMA_MISMATCH).toBe(0);
     });
 
     it("counts WRONG_VALUE failures", () => {

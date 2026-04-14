@@ -1,4 +1,4 @@
-import { RawDatasetRow } from "../types";
+import { RawDatasetRow, ParseError } from "../types";
 import { parseCsv } from "./csv";
 import { parseJsonl } from "./jsonl";
 
@@ -6,11 +6,6 @@ import { parseJsonl } from "./jsonl";
  * Parser entrypoint that dispatches by file extension and normalizes supported
  * text formats into `RawDatasetRow[]` plus non-fatal parse warnings.
  */
-
-type ParseError = {
-  row: number | string;
-  message: string;
-};
 
 type ParseResult = {
   rows: RawDatasetRow[];

@@ -15,6 +15,7 @@ type GenerateEvent = {
   prompt: string;
   actual: string;
   error?: boolean;
+  errorMessage?: string;
   index: number;
   total: number;
 };
@@ -45,17 +46,21 @@ type GenerateCallbacks = {
  * If the stream closes without a done event:
  * - With accumulated rows → `onComplete` is called
  * - With no rows → `onError` is called
+ *
+ * Pass an `AbortSignal` to cancel the stream mid-flight (e.g. on unmount or reset).
  */
 export async function generateWithStream(
   rows: GenerateRow[],
   providerId: string,
   model: string,
   callbacks: GenerateCallbacks,
+  signal?: AbortSignal,
 ): Promise<void> {
   const response = await fetch("/eval-lens/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ rows, providerId, model }),
+    signal,
   });
 
   if (!response.ok) {
@@ -74,35 +79,45 @@ export async function generateWithStream(
   const completedRows: GenerateEvent[] = [];
   let buffer = "";
 
-  while (true) {
-    const { done, value } = await reader.read();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
 
-    if (done) break;
+      if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
+      buffer += decoder.decode(value, { stream: true });
 
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
 
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
 
-      const json = line.slice(6);
+        const json = line.slice(6);
 
-      try {
-        const event: StreamEvent = JSON.parse(json);
+        try {
+          const event: StreamEvent = JSON.parse(json);
 
-        if ("done" in event) {
-          callbacks.onComplete(completedRows);
-          return;
+          if ("done" in event) {
+            callbacks.onComplete(completedRows);
+            return;
+          }
+
+          completedRows.push(event);
+          callbacks.onProgress(event.index, event.total, event);
+        } catch {
+          // Skip malformed events
         }
-
-        completedRows.push(event);
-        callbacks.onProgress(event.index, event.total, event);
-      } catch {
-        // Skip malformed events
       }
     }
+  } catch (err) {
+    // Swallow AbortError — the caller intentionally cancelled the stream
+    if (err instanceof Error && err.name === "AbortError") {
+      return;
+    }
+    throw err;
+  } finally {
+    reader.releaseLock();
   }
 
   // Stream ended without done event

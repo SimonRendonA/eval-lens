@@ -1,4 +1,5 @@
-import { InferredSchema, SchemaField, Failure } from "../types";
+import { InferredSchema, Failure } from "../types";
+import { getValueType } from "../utils";
 
 /**
  * Schema validation module.
@@ -6,16 +7,6 @@ import { InferredSchema, SchemaField, Failure } from "../types";
  * Compares parsed `actual` objects against an inferred schema and emits
  * structural failures (`MISSING_FIELD`, `WRONG_TYPE`, `EXTRA_FIELD`).
  */
-
-/** Maps a runtime value to its SchemaField type tag. */
-function getType(value: unknown): SchemaField["type"] {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "array";
-  const t = typeof value;
-  if (t === "string" || t === "number" || t === "boolean" || t === "object")
-    return t;
-  return "string";
-}
 
 /**
  * Validates a parsed `actual` object against an inferred schema.
@@ -52,7 +43,7 @@ export function validateAgainstSchema(
       continue;
     }
 
-    const actualType = getType(actual[field.name]);
+    const actualType = getValueType(actual[field.name]);
 
     if (actualType !== field.type) {
       failures.push({

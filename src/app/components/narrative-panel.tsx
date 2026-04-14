@@ -89,7 +89,7 @@ export function NarrativePanel({
           {narrative.patterns.length > 0 && (
             <div className="space-y-4">
               {narrative.patterns.map((pattern, i) => (
-                <div key={i}>
+                <div key={pattern.title}>
                   {i > 0 && <div className="mb-4 border-t border-border" />}
                   <p className="text-sm font-semibold">{pattern.title}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
