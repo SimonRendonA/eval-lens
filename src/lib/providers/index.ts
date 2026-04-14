@@ -5,6 +5,12 @@ import { GeminiProvider, geminiConfig } from "./gemini";
 
 export type { Provider, ProviderConfig, AvailableProvider } from "./types";
 
+const PROVIDER_ENV_KEYS: Record<AvailableProvider["id"], string> = {
+  openai: "OPENAI_API_KEY",
+  anthropic: "ANTHROPIC_API_KEY",
+  gemini: "GEMINI_API_KEY",
+};
+
 /**
  * Instantiates a provider implementation for the given id.
  *
@@ -46,4 +52,29 @@ export function getAvailableProviders(
   }
 
   return providers;
+}
+
+/**
+ * Returns the configured provider metadata for a provider id, if available.
+ */
+export function getAvailableProviderById(
+  env: Record<string, string | undefined>,
+  id: AvailableProvider["id"],
+): AvailableProvider | undefined {
+  return getAvailableProviders(env).find((provider) => provider.id === id);
+}
+
+/**
+ * Resolves API key lookup through the provider abstraction instead of callers.
+ */
+export function createProviderFromEnv(
+  id: AvailableProvider["id"],
+  env: Record<string, string | undefined>,
+): Provider {
+  const apiKey = env[PROVIDER_ENV_KEYS[id]];
+  if (!apiKey) {
+    throw new Error(`API key not configured for ${id}`);
+  }
+
+  return createProvider(id, apiKey);
 }

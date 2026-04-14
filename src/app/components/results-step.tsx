@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table";
 import { RowInspector } from "./row-inspector";
 import { ExportMenu } from "./export-menu";
+import { NarrativePanel } from "./narrative-panel";
+import type { NarrativeStatus, NarrativeResponse } from "@/lib/narrative";
 
 /**
  * Results dashboard step.
@@ -28,11 +30,21 @@ export function ResultsStep({
   onReset,
   exportMeta,
   isSample,
+  mode,
+  narrativeStatus,
+  narrative,
+  narrativeError,
+  onTriggerNarrative,
 }: {
   result: EvaluationResult;
   onReset: () => void;
   exportMeta?: ExportMeta;
   isSample?: boolean;
+  mode: "hosted" | "self-hosted";
+  narrativeStatus: NarrativeStatus;
+  narrative: NarrativeResponse | null;
+  narrativeError: string | null;
+  onTriggerNarrative: () => void;
 }) {
   const { summary } = result;
   const passPercent = Math.round(summary.passRate * 100);
@@ -263,6 +275,17 @@ export function ResultsStep({
         onClose={() => setSelectedRowId(null)}
         onNavigate={navigateRow}
       />
+
+      {/* Failure narrative — self-hosted mode only */}
+      {mode === "self-hosted" && (
+        <NarrativePanel
+          narrativeStatus={narrativeStatus}
+          narrative={narrative}
+          narrativeError={narrativeError}
+          failedCount={summary.failed}
+          onTrigger={onTriggerNarrative}
+        />
+      )}
     </div>
   );
 }

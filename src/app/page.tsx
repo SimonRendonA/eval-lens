@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Search, ShieldCheck, Upload } from "lucide-react";
 import useEvaluation from "./hooks/useEvaluation";
 import { Button } from "@/components/ui/button";
+import type { ExportMeta } from "@/lib/types";
 import { UploadStep } from "./components/upload-step";
 import { SchemaStep } from "./components/schema-step";
 import { GeneratingStep } from "./components/generating-step";
@@ -28,18 +29,38 @@ export default function Home() {
     error,
     mode,
     availableProviders,
+    selectedProvider,
+    selectedModel,
+    generatedRowCount,
     generationProgress,
     generationTotal,
     isSample,
+    narrativeStatus,
+    narrative,
+    narrativeError,
     handleFileUpload,
     confirmSchema,
     handleGenerate,
+    triggerNarrative,
     reset,
   } = useEvaluation();
 
   const rowsNeedingGeneration = rawRows.filter(
     (r) => !r.actual || r.actual === "",
   ).length;
+
+  const exportMeta: ExportMeta | undefined = result
+    ? {
+        mode,
+        fileName: file?.name,
+        isSample,
+        outputSource: generatedRowCount > 0 ? "generated" : "uploaded",
+        generatedRowCount,
+        provider: mode === "self-hosted" ? selectedProvider ?? undefined : undefined,
+        model: mode === "self-hosted" ? selectedModel ?? undefined : undefined,
+        narrative: narrativeStatus === "success" ? narrative ?? undefined : undefined,
+      }
+    : undefined;
 
   const scrollToUpload = () => {
     const uploadSection = document.getElementById("upload-section");
@@ -361,7 +382,17 @@ export default function Home() {
         )}
         {step === "evaluating" && <EvaluatingStep />}
         {step === "results" && result && (
-          <ResultsStep result={result} onReset={reset} isSample={isSample} />
+          <ResultsStep
+            result={result}
+            onReset={reset}
+            exportMeta={exportMeta}
+            isSample={isSample}
+            mode={mode}
+            narrativeStatus={narrativeStatus}
+            narrative={narrative}
+            narrativeError={narrativeError}
+            onTriggerNarrative={triggerNarrative}
+          />
         )}
       </div>
     </main>

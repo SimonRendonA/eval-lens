@@ -12,6 +12,12 @@ import {
   ParseError,
 } from "@/lib/types";
 import { AvailableProvider } from "@/lib/providers";
+import type {
+  NarrativeStatus,
+  NarrativeResponse,
+  NarrativeRequest,
+  NarrativeRow,
+} from "@/lib/narrative";
 
 /**
  * Main client-side orchestration hook for EvalLens.
@@ -39,8 +45,19 @@ export default function useEvaluation() {
   const [availableProviders, setAvailableProviders] = useState<
     AvailableProvider[]
   >([]);
+  const [selectedProvider, setSelectedProvider] = useState<
+    AvailableProvider["id"] | null
+  >(null);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [generatedRowCount, setGeneratedRowCount] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationTotal, setGenerationTotal] = useState(0);
+
+  // Narrative state
+  const [narrativeStatus, setNarrativeStatus] =
+    useState<NarrativeStatus>("idle");
+  const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
+  const [narrativeError, setNarrativeError] = useState<string | null>(null);
 
   // Fetch config on mount
   useEffect(() => {
@@ -49,6 +66,20 @@ export default function useEvaluation() {
       .then((data) => {
         setMode(data.mode);
         setAvailableProviders(data.providers);
+        setSelectedProvider((currentProvider) => {
+          if (currentProvider) {
+            return currentProvider;
+          }
+
+          return data.providers[0]?.id ?? null;
+        });
+        setSelectedModel((currentModel) => {
+          if (currentModel) {
+            return currentModel;
+          }
+
+          return data.providers[0]?.config.defaultModel ?? null;
+        });
       })
       .catch(() => {
         // Default to hosted if config fails
@@ -60,6 +91,10 @@ export default function useEvaluation() {
     setError(null);
     setFile(uploadedFile);
     setIsSample(sample);
+    setGeneratedRowCount(0);
+    setNarrativeStatus("idle");
+    setNarrative(null);
+    setNarrativeError(null);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -105,6 +140,9 @@ export default function useEvaluation() {
       return;
     }
 
+    setNarrativeStatus("idle");
+    setNarrative(null);
+    setNarrativeError(null);
     setStep("evaluating");
     setTimeout(() => {
       const evalResult = evaluateDataset(rawRows, schema);
@@ -120,6 +158,9 @@ export default function useEvaluation() {
       .filter((row) => !row.actual || row.actual === "")
       .map((row) => ({ id: row.id, prompt: row.prompt }));
 
+    setSelectedProvider(providerId as AvailableProvider["id"]);
+    setSelectedModel(model);
+    setGeneratedRowCount(rowsToGenerate.length);
     setGenerationProgress(0);
     setGenerationTotal(rowsToGenerate.length);
 
@@ -140,6 +181,11 @@ export default function useEvaluation() {
         });
 
         setRawRows(mergedRows);
+        setSelectedProvider(providerId as AvailableProvider["id"]);
+        setSelectedModel(model);
+        setNarrativeStatus("idle");
+        setNarrative(null);
+        setNarrativeError(null);
         setStep("evaluating");
 
         setTimeout(() => {
@@ -155,6 +201,75 @@ export default function useEvaluation() {
     });
   };
 
+  const triggerNarrative = async () => {
+    if (!result || !selectedProvider) return;
+    if (narrativeStatus === "loading") return;
+
+    setNarrativeStatus("loading");
+    setNarrativeError(null);
+
+    const failedRowResults = result.rowResults.filter(
+      (r) => r.status === "fail",
+    );
+    const rawRowMap = new Map(rawRows.map((r) => [r.id, r]));
+
+    const failureBreakdown: Record<string, number> = {};
+    const failedRows: NarrativeRow[] = failedRowResults.map((row) => {
+      const raw = rawRowMap.get(row.id);
+      const failureReasons = row.failures.map((f) => f.reason as string);
+      const fieldFailures: Record<string, string> = {};
+      for (const f of row.failures) {
+        fieldFailures[f.field] = f.reason;
+      }
+      for (const reason of failureReasons) {
+        failureBreakdown[reason] = (failureBreakdown[reason] ?? 0) + 1;
+      }
+      return {
+        id: row.id,
+        ...(raw?.prompt ? { prompt: raw.prompt } : {}),
+        expected: raw?.expected ?? "",
+        actual: raw?.actual ?? "",
+        failureReasons,
+        ...(Object.keys(fieldFailures).length > 0 ? { fieldFailures } : {}),
+      };
+    });
+
+    const request: NarrativeRequest = {
+      failedRows,
+      totalRows: result.summary.total,
+      failedCount: result.summary.failed,
+      passedCount: result.summary.passed,
+      failureBreakdown,
+      provider: selectedProvider,
+    };
+
+    try {
+      const res = await fetch("/eval-lens/api/narrative", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setNarrativeStatus("error");
+        setNarrativeError(
+          typeof data.error === "string" ? data.error : "Unknown error",
+        );
+        return;
+      }
+
+      const narrativeData = (await res.json()) as NarrativeResponse;
+      setNarrative(narrativeData);
+      setNarrativeStatus("success");
+    } catch (err) {
+      setNarrativeStatus("error");
+      setNarrativeError(
+        err instanceof Error ? err.message : "Network error",
+      );
+    }
+  };
+
   const reset = () => {
     setStep("upload");
     setFile(null);
@@ -163,9 +278,15 @@ export default function useEvaluation() {
     setSchema(null);
     setResult(null);
     setError(null);
+    setSelectedProvider(null);
+    setSelectedModel(null);
+    setGeneratedRowCount(0);
     setGenerationProgress(0);
     setGenerationTotal(0);
     setIsSample(false);
+    setNarrativeStatus("idle");
+    setNarrative(null);
+    setNarrativeError(null);
   };
 
   return {
@@ -178,13 +299,20 @@ export default function useEvaluation() {
     error,
     mode,
     availableProviders,
+    selectedProvider,
+    selectedModel,
+    generatedRowCount,
     needsGeneration,
     generationProgress,
     generationTotal,
     isSample,
+    narrativeStatus,
+    narrative,
+    narrativeError,
     handleFileUpload,
     confirmSchema,
     handleGenerate,
+    triggerNarrative,
     reset,
   };
 }

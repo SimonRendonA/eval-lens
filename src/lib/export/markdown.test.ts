@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { exportToMarkdown } from "./markdown";
-import type { EvaluationResult } from "../types";
+import type { EvaluationResult, ExportMeta } from "../types";
 
 function makeResult(overrides: Partial<EvaluationResult> = {}): EvaluationResult {
   return {
@@ -40,7 +40,12 @@ describe("exportToMarkdown", () => {
 
     it("includes a Generated date line", () => {
       const md = exportToMarkdown(makeResult());
-      expect(md).toMatch(/Generated: \d{4}-\d{2}-\d{2}/);
+      expect(md).toMatch(/Generated \d{4}-\d{2}-\d{2}/);
+    });
+
+    it("contains a Run Context section", () => {
+      const md = exportToMarkdown(makeResult());
+      expect(md).toContain("## Run Context");
     });
 
     it("contains a Summary section", () => {
@@ -187,6 +192,56 @@ describe("exportToMarkdown", () => {
         rowResults: [{ id: "1", status: "pass", failures: [] }],
       };
       expect(exportToMarkdown(result)).not.toContain("## Failure Details");
+    });
+  });
+
+  describe("mode-aware metadata", () => {
+    it("includes hosted output source by default", () => {
+      const md = exportToMarkdown(makeResult());
+      expect(md).toContain("| Mode | Hosted |");
+      expect(md).toContain("| Output source | Uploaded actuals |");
+    });
+
+    it("includes self-hosted provider and generation details", () => {
+      const meta: ExportMeta = {
+        mode: "self-hosted",
+        fileName: "selfhosted-stress-50.csv",
+        outputSource: "generated",
+        generatedRowCount: 12,
+        provider: "anthropic",
+        model: "claude-sonnet-4-6",
+      };
+
+      const md = exportToMarkdown(makeResult(), meta);
+      expect(md).toContain("| Mode | Self-hosted |");
+      expect(md).toContain("| Provider | anthropic |");
+      expect(md).toContain("| Generated rows | 12 |");
+      expect(md).toContain("| Output source | Provider-generated actuals |");
+    });
+  });
+
+  describe("failure analysis section", () => {
+    it("includes narrative analysis when present", () => {
+      const meta: ExportMeta = {
+        narrative: {
+          summary: "Most failures cluster around label mismatches.",
+          patterns: [
+            {
+              title: "Label drift",
+              description: "The model picks nearby but invalid labels.",
+              affectedCount: 3,
+              exampleIds: ["3"],
+            },
+          ],
+          recommendation: "Constrain the output labels more aggressively.",
+        },
+      };
+
+      const md = exportToMarkdown(makeResult(), meta);
+      expect(md).toContain("## Failure Analysis");
+      expect(md).toContain("### Patterns");
+      expect(md).toContain("Label drift");
+      expect(md).toContain("### Recommended Next Step");
     });
   });
 });
