@@ -2,12 +2,12 @@
 
 All notable changes to EvalLens are documented here.
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/0.1.1/).
 Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.1.0] — 2026-04-14
+## [0.1.1] — 2026-04-14
 
 ### Added
 
