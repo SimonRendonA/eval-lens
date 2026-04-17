@@ -14,6 +14,10 @@ npm run dev
 
 The app runs at [http://localhost:3000/eval-lens](http://localhost:3000/eval-lens).
 
+## Testing
+
+Run `npm test` for watch mode during development, or `npm run test:run` for a single-pass run (used in CI).
+
 ## Branch Naming Scheme 
 Pattern: type/short-description
 Types:

@@ -16,20 +16,16 @@ fi
 
 # Run tests in CI mode (non-interactive, exits on completion).
 # Capture output to a temp file so we can extract a summary.
-tmp_out="$(mktemp -t evallens-test-on-stop.XXXXXX)"
+tmp_out="$(mktemp)"
 trap 'rm -f "$tmp_out"' EXIT
 
 if npm run test:run --silent >"$tmp_out" 2>&1; then
-  # Tests passed. Emit a one-liner summary.
-  # Extract the "Test Files" and "Tests" lines Vitest prints at the end.
   summary="$(grep -E "^[[:space:]]*(Test Files|Tests)[[:space:]]" "$tmp_out" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
-  echo "[test-on-stop] PASS  ${summary:-vitest run completed}"
+  printf '{"systemMessage": "[test-on-stop] PASS  %s"}\n' "${summary:-vitest run completed}"
 else
   exit_code=$?
-  echo "[test-on-stop] FAIL  vitest exited $exit_code"
-  echo "--- tail of test output ---"
-  tail -n 40 "$tmp_out"
-  echo "--- end test output ---"
+  tail_output="$(tail -n 40 "$tmp_out")"
+  printf '{"systemMessage": "[test-on-stop] FAIL (exit %s)\n%s"}\n' "$exit_code" "$tail_output"
 fi
 
 exit 0
