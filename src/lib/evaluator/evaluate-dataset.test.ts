@@ -133,4 +133,20 @@ describe("evaluateDataset", () => {
       expect(rowResults[1].id).toBe("row-b");
     });
   });
+
+  describe("robustness", () => {
+    it("evaluates every row when one output is JSON null", () => {
+      const rows: RawDatasetRow[] = [
+        makeRow("1", { name: "Alice" }, { name: "Alice" }),
+        { id: "2", prompt: "p", expected: '{"name":"Bob"}', actual: "null" },
+      ];
+      const { summary, rowResults } = evaluateDataset(rows, schema);
+      expect(summary.total).toBe(2);
+      expect(summary.passed).toBe(1);
+      expect(rowResults[1].failures[0]).toMatchObject({
+        reason: "WRONG_TYPE",
+        field: "_root",
+      });
+    });
+  });
 });

@@ -383,6 +383,7 @@ export default function Home() {
             rowCount={rawRows.length}
             schema={schema}
             parseErrors={parseErrors}
+            error={error}
             onConfirm={confirmSchema}
             onBack={reset}
           />

@@ -139,4 +139,20 @@ describe("validateAgainstSchema", () => {
       expect(reasons).toContain("EXTRA_FIELD");   // foo
     });
   });
+
+  describe("non-object input", () => {
+    it("returns a single _root WRONG_TYPE for null instead of throwing", () => {
+      const schema = makeSchema([{ name: "name", type: "string", required: true }]);
+      expect(validateAgainstSchema(null, schema)).toEqual([
+        { reason: "WRONG_TYPE", field: "_root", expected: "object", actual: "null" },
+      ]);
+    });
+
+    it("returns a single _root WRONG_TYPE for arrays", () => {
+      const schema = makeSchema([{ name: "name", type: "string", required: true }]);
+      expect(validateAgainstSchema([{ name: "Alice" }], schema)).toMatchObject([
+        { reason: "WRONG_TYPE", field: "_root", actual: "array" },
+      ]);
+    });
+  });
 });

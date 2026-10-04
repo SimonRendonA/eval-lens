@@ -5,7 +5,7 @@ import {
   Failure,
 } from "../types";
 import { validateAgainstSchema } from "../schema";
-import { getValueType } from "../utils";
+import { getValueType, hasOwn, isPlainObject } from "../utils";
 
 /**
  * Deep-equality check for two values.
@@ -34,10 +34,11 @@ function valuesEqual(a: unknown, b: unknown): boolean {
  * Evaluates a single dataset row against a schema.
  *
  * Evaluation order:
- * 1. Parse `expected` — fail with `UNPARSEABLE` if invalid JSON
+ * 1. Parse `expected` — fail with `UNPARSEABLE` if it is not a JSON object
  * 2. Parse `actual` — fail with `UNPARSEABLE` if invalid JSON
  * 3. Run structural checks via `validateAgainstSchema`
- *    (`MISSING_FIELD`, `WRONG_TYPE`, `EXTRA_FIELD`)
+ *    (`WRONG_TYPE` on `_root` for non-object output, `MISSING_FIELD`,
+ *    `WRONG_TYPE`, `EXTRA_FIELD`)
  * 4. For fields that passed structural checks, compare values (`WRONG_VALUE`)
  *
  * Fields that fail structural checks are **not** checked for value equality.
@@ -46,11 +47,14 @@ export function evaluateRow(
   row: RawDatasetRow,
   schema: InferredSchema,
 ): RowResult {
-  // Parse expected
-  let expected: Record<string, unknown>;
+  // Parse expected — the answer key must be a JSON object
+  let expected: unknown;
   try {
     expected = JSON.parse(row.expected);
   } catch {
+    expected = undefined;
+  }
+  if (!isPlainObject(expected)) {
     return {
       id: row.id,
       status: "fail",
@@ -58,7 +62,7 @@ export function evaluateRow(
         {
           reason: "UNPARSEABLE",
           field: "_root",
-          expected: "Valid JSON",
+          expected: "Valid JSON object",
           actual: row.expected,
         },
       ],
@@ -66,7 +70,7 @@ export function evaluateRow(
   }
 
   // Parse actual
-  let actual: Record<string, unknown>;
+  let actual: unknown;
   try {
     actual = JSON.parse(row.actual);
   } catch {
@@ -84,8 +88,12 @@ export function evaluateRow(
     };
   }
 
-  // Structural checks via schema validation
+  // Structural checks via schema validation. Valid JSON that is not an
+  // object (null, a number, an array…) fails here on `_root`.
   const schemaFailures = validateAgainstSchema(actual, schema);
+  if (!isPlainObject(actual)) {
+    return { id: row.id, status: "fail", failures: schemaFailures };
+  }
 
   // Track which fields had structural failures so we skip value comparison
   const failedFields = new Set(schemaFailures.map((f) => f.field));
@@ -95,8 +103,8 @@ export function evaluateRow(
 
   for (const field of schema.fields) {
     if (failedFields.has(field.name)) continue;
-    if (!(field.name in expected)) continue;
-    if (!(field.name in actual)) continue;
+    if (!hasOwn(expected, field.name)) continue;
+    if (!hasOwn(actual, field.name)) continue;
 
     if (!valuesEqual(expected[field.name], actual[field.name])) {
       valueFailures.push({

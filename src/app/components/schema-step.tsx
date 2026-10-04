@@ -22,6 +22,7 @@ export function SchemaStep({
   rowCount,
   schema,
   parseErrors,
+  error,
   onConfirm,
   onBack,
 }: {
@@ -29,6 +30,7 @@ export function SchemaStep({
   rowCount: number;
   schema: { fields: { name: string; type: string; required: boolean }[] };
   parseErrors: { row: number | string; message: string }[];
+  error: string | null;
   onConfirm: () => void;
   onBack: () => void;
 }) {
@@ -74,6 +76,12 @@ export function SchemaStep({
       </div>
 
       {parseErrors.length > 0 && <ParseWarnings errors={parseErrors} />}
+
+      {error && (
+        <div className="rounded-lg border border-fail/30 bg-fail/10 px-4 py-3 text-sm text-fail">
+          {error}
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <Button variant="outline" onClick={onBack}>

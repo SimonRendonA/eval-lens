@@ -202,4 +202,51 @@ describe("evaluateRow", () => {
       expect(reasons).toContain("EXTRA_FIELD");
     });
   });
+
+  describe("non-object outputs", () => {
+    it.each([
+      ["null", "null"],
+      ["42", "number"],
+      ['"just a string"', "string"],
+      ["true", "boolean"],
+      ['["Alice", 30]', "array"],
+    ])("fails %s with WRONG_TYPE on _root instead of throwing", (actual, type) => {
+      const row: RawDatasetRow = {
+        id: "1",
+        prompt: "p",
+        expected: '{"name":"Alice","age":30}',
+        actual,
+      };
+      const result = evaluateRow(row, simpleSchema);
+      expect(result.status).toBe("fail");
+      expect(result.failures).toEqual([
+        { reason: "WRONG_TYPE", field: "_root", expected: "object", actual: type },
+      ]);
+    });
+
+    it("fails with UNPARSEABLE when expected is valid JSON but not an object", () => {
+      const row: RawDatasetRow = {
+        id: "1",
+        prompt: "p",
+        expected: "null",
+        actual: '{"name":"Alice","age":30}',
+      };
+      const result = evaluateRow(row, simpleSchema);
+      expect(result.failures[0]).toMatchObject({
+        reason: "UNPARSEABLE",
+        field: "_root",
+      });
+    });
+
+    it("does not treat inherited keys like constructor as present", () => {
+      const schema: InferredSchema = {
+        fields: [{ name: "constructor", type: "string", required: true }],
+      };
+      const row = makeRow("1", { constructor: "Acme" }, {});
+      const result = evaluateRow(row, schema);
+      expect(result.failures).toMatchObject([
+        { reason: "MISSING_FIELD", field: "constructor" },
+      ]);
+    });
+  });
 });

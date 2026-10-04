@@ -122,6 +122,20 @@ export default function useEvaluation() {
     reader.readAsText(uploadedFile);
   };
 
+  // Runs the evaluator and moves to results. If it throws, go back to the
+  // schema step with an error instead of leaving the spinner up forever.
+  const runEvaluation = (rows: RawDatasetRow[], evalSchema: InferredSchema) => {
+    try {
+      setResult(evaluateDataset(rows, evalSchema));
+      setStep("results");
+    } catch (err) {
+      setError(
+        `Evaluation failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      setStep("schema");
+    }
+  };
+
   const needsGeneration = rawRows.some(
     (row) => !row.actual || row.actual === "",
   );
@@ -142,6 +156,7 @@ export default function useEvaluation() {
       return;
     }
 
+    setError(null);
     setNarrativeStatus("idle");
     setNarrative(null);
     setNarrativeError(null);
@@ -150,11 +165,7 @@ export default function useEvaluation() {
     // before the synchronous work blocks the main thread.
     // NOTE: for very large datasets (>1 000 rows) this will still cause a
     // perceptible freeze. Moving evaluation to a Web Worker is the long-term fix.
-    setTimeout(() => {
-      const evalResult = evaluateDataset(rawRows, schema);
-      setResult(evalResult);
-      setStep("results");
-    }, 0);
+    setTimeout(() => runEvaluation(rawRows, schema), 0);
   };
 
   const handleGenerate = (providerId: string, model: string) => {
@@ -204,11 +215,7 @@ export default function useEvaluation() {
         setStep("evaluating");
 
         // Same deferred-evaluation pattern as confirmSchema — see note above.
-        setTimeout(() => {
-          const evalResult = evaluateDataset(mergedRows, schema);
-          setResult(evalResult);
-          setStep("results");
-        }, 0);
+        setTimeout(() => runEvaluation(mergedRows, schema), 0);
       },
       onError: (errorMsg) => {
         setError(errorMsg);

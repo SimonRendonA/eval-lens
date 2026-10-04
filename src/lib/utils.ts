@@ -19,3 +19,18 @@ export function getValueType(value: unknown): SchemaField["type"] {
     return t;
   return "string";
 }
+
+/** True for a non-null, non-array object — the only valid shape for a row output. */
+export function isPlainObject(
+  value: unknown,
+): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Own-property check. Unlike the `in` operator it ignores inherited keys, so a
+ * field named `constructor` or `toString` is not "present" on every object.
+ */
+export function hasOwn(obj: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
