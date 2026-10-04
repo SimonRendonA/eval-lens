@@ -240,6 +240,29 @@ describe("evaluateRow", () => {
     });
   });
 
+  describe("nullable fields", () => {
+    const schema: InferredSchema = {
+      fields: [{ name: "discount", type: "number", required: true, nullable: true }],
+    };
+
+    it("accepts null where the gold is null", () => {
+      const row = makeRow("1", { discount: null }, { discount: null });
+      expect(evaluateRow(row, schema).status).toBe("pass");
+    });
+
+    it("accepts a number where the first gold row was null", () => {
+      const row = makeRow("2", { discount: 10 }, { discount: 10 });
+      expect(evaluateRow(row, schema).status).toBe("pass");
+    });
+
+    it("reports null-for-value as WRONG_VALUE, not WRONG_TYPE", () => {
+      const row = makeRow("3", { discount: 10 }, { discount: null });
+      expect(evaluateRow(row, schema).failures).toMatchObject([
+        { reason: "WRONG_VALUE", field: "discount", expected: 10, actual: null },
+      ]);
+    });
+  });
+
   describe("non-object outputs", () => {
     it.each([
       ["null", "null"],

@@ -71,7 +71,10 @@ The `errors` array holds **non-fatal** problems — rows that were skipped becau
 1. JSON-parses each `expected` value (throws if any is not a valid JSON object).
 2. Collects every unique key seen across all rows.
 3. For each key:
-   - **Type** is detected from the first row that contains that key.
+   - **Type** is the most common non-null type across rows. A field whose
+     gold is sometimes `null` is marked `nullable`, and a field whose gold uses
+     more than one type (e.g. `"2010"` and `2011`) records `mixedTypes`, shown
+     as a warning on the schema step. Any of those types is accepted.
    - **Required** is `true` only if the key appears in *every* row.
 
 ```ts

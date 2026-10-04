@@ -1,5 +1,6 @@
 import { InferredSchema, Failure } from "../types";
 import { getValueType, hasOwn, isPlainObject } from "../utils";
+import { acceptedTypes } from "./infer";
 
 /**
  * Schema validation module.
@@ -16,7 +17,9 @@ import { getValueType, hasOwn, isPlainObject } from "../utils";
  *   string, number, boolean). No field checks run in that case.
  * - `MISSING_FIELD` — a field is absent from `actual` although the schema
  *   requires it, or this row's `expected` object contains it
- * - `WRONG_TYPE` — a field is present but its type does not match the schema
+ * - `WRONG_TYPE` — a field is present but its type is not one the schema
+ *   accepts (nullable fields accept `null`; mixed-type fields accept any
+ *   type the answer key uses)
  * - `EXTRA_FIELD` — `actual` contains a key not defined in the schema
  *
  * Optional fields that are absent do not generate failures unless this row's
@@ -64,7 +67,7 @@ export function validateAgainstSchema(
 
     const actualType = getValueType(actual[field.name]);
 
-    if (actualType !== field.type) {
+    if (!acceptedTypes(field).includes(actualType)) {
       failures.push({
         reason: "WRONG_TYPE",
         field: field.name,

@@ -61,12 +61,32 @@ export type RawDatasetRow = {
   id: string;
 };
 
+/** Runtime JSON value categories used for schema typing. */
+export type ValueType =
+  | "string"
+  | "number"
+  | "boolean"
+  | "object"
+  | "array"
+  | "null";
+
 /** A single field in an inferred schema. */
 export type SchemaField = {
   name: string;
-  type: "string" | "number" | "boolean" | "object" | "array" | "null";
+  /**
+   * The most common non-null type seen in the `expected` column.
+   * `"null"` only when every expected value for the field is null.
+   */
+  type: ValueType;
   /** True if the field appeared in every row of the dataset. */
   required: boolean;
+  /** True if any expected value for the field is null; null actuals are then type-valid. */
+  nullable?: boolean;
+  /**
+   * Every non-null type seen in the `expected` column, present only when there
+   * is more than one (a type conflict in the answer key). Any of them is accepted.
+   */
+  mixedTypes?: ValueType[];
 };
 
 /** Schema inferred from the `expected` column of a dataset. */

@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ParseWarnings } from "./parse-warnings";
+import type { InferredSchema, SchemaField } from "@/lib/types";
 
 /**
  * Schema confirmation step.
@@ -28,7 +29,7 @@ export function SchemaStep({
 }: {
   fileName: string;
   rowCount: number;
-  schema: { fields: { name: string; type: string; required: boolean }[] };
+  schema: InferredSchema;
   parseErrors: { row: number | string; message: string }[];
   error: string | null;
   onConfirm: () => void;
@@ -59,7 +60,17 @@ export function SchemaStep({
                 <TableCell className="px-4 font-mono text-brand">
                   {field.name}
                 </TableCell>
-                <TableCell className="px-4 font-mono">{field.type}</TableCell>
+                <TableCell className="px-4 font-mono">
+                  {formatFieldType(field)}
+                  {field.mixedTypes && (
+                    <Badge
+                      className="ml-2 bg-warning/15 font-sans text-warning hover:bg-warning/20"
+                      title="Your expected column uses more than one type for this field. Any of them is accepted."
+                    >
+                      mixed
+                    </Badge>
+                  )}
+                </TableCell>
                 <TableCell className="px-4">
                   {field.required ? (
                     <Badge className="bg-brand/15 text-brand hover:bg-brand/20">
@@ -96,4 +107,11 @@ export function SchemaStep({
       </div>
     </div>
   );
+}
+
+/** "string", "string | null", or "number | string" for mixed-type fields. */
+function formatFieldType(field: SchemaField): string {
+  const types: string[] = [...(field.mixedTypes ?? [field.type])];
+  if (field.nullable && !types.includes("null")) types.push("null");
+  return types.join(" | ");
 }

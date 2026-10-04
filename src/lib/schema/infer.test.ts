@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { inferSchema } from "./infer";
+import { inferSchema, acceptedTypes } from "./infer";
 import type { RawDatasetRow } from "../types";
 
 function makeRow(id: string, expected: unknown): RawDatasetRow {
@@ -75,6 +75,58 @@ describe("inferSchema", () => {
     it("detects null type", () => {
       const { fields } = inferSchema([makeRow("1", { value: null })]);
       expect(fields.find((f) => f.name === "value")?.type).toBe("null");
+    });
+  });
+
+  describe("nullable and mixed types", () => {
+    it("uses the non-null type when the first gold value is null", () => {
+      const { fields } = inferSchema([
+        makeRow("1", { discount: null }),
+        makeRow("2", { discount: 10 }),
+      ]);
+      expect(fields[0]).toEqual({
+        name: "discount",
+        type: "number",
+        required: true,
+        nullable: true,
+      });
+    });
+
+    it("picks the most common non-null type and records the conflict", () => {
+      const { fields } = inferSchema([
+        makeRow("1", { year: "2010" }),
+        makeRow("2", { year: 2011 }),
+        makeRow("3", { year: 2012 }),
+      ]);
+      expect(fields[0].type).toBe("number");
+      expect(fields[0].mixedTypes).toEqual(["string", "number"]);
+    });
+
+    it("leaves nullable and mixedTypes unset for a single consistent type", () => {
+      const { fields } = inferSchema([
+        makeRow("1", { name: "Alice" }),
+        makeRow("2", { name: "Bob" }),
+      ]);
+      expect(fields[0]).toEqual({ name: "name", type: "string", required: true });
+    });
+  });
+
+  describe("acceptedTypes", () => {
+    it("adds null for nullable fields", () => {
+      expect(
+        acceptedTypes({ name: "x", type: "number", required: true, nullable: true }),
+      ).toEqual(["number", "null"]);
+    });
+
+    it("accepts every observed type for mixed fields", () => {
+      expect(
+        acceptedTypes({
+          name: "x",
+          type: "number",
+          required: true,
+          mixedTypes: ["string", "number"],
+        }),
+      ).toEqual(["string", "number"]);
     });
   });
 

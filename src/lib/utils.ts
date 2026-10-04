@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { SchemaField } from "./types";
+import type { ValueType } from "./types";
 
 /** Merges Tailwind class names, resolving conflicts via tailwind-merge. */
 export function cn(...inputs: ClassValue[]) {
@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
  * Maps a runtime value to its SchemaField type tag.
  * Used by schema inference, schema validation, and the row evaluator.
  */
-export function getValueType(value: unknown): SchemaField["type"] {
+export function getValueType(value: unknown): ValueType {
   if (value === null) return "null";
   if (Array.isArray(value)) return "array";
   const t = typeof value;

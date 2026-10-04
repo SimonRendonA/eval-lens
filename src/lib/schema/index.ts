@@ -1,2 +1,2 @@
-export { inferSchema } from "./infer";
+export { inferSchema, acceptedTypes } from "./infer";
 export { validateAgainstSchema } from "./validate";
