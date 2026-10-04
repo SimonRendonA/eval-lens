@@ -57,6 +57,21 @@ describe("validateAgainstSchema", () => {
       const failures = validateAgainstSchema({}, schema);
       expect(failures).toHaveLength(0);
     });
+
+    it("reports MISSING_FIELD for an optional field this row's gold contains", () => {
+      const schema = makeSchema([
+        { name: "role", type: "string", required: false },
+      ]);
+      const failures = validateAgainstSchema({}, schema, { role: "engineer" });
+      expect(failures).toMatchObject([{ reason: "MISSING_FIELD", field: "role" }]);
+    });
+
+    it("does NOT report an optional field this row's gold also omits", () => {
+      const schema = makeSchema([
+        { name: "role", type: "string", required: false },
+      ]);
+      expect(validateAgainstSchema({}, schema, { name: "Bob" })).toHaveLength(0);
+    });
   });
 
   describe("WRONG_TYPE", () => {

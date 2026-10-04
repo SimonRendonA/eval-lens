@@ -92,6 +92,21 @@ describe("evaluateRow", () => {
   });
 
   describe("MISSING_FIELD failures", () => {
+    it("fails when an optional field present in this row's gold is omitted", () => {
+      const schema: InferredSchema = {
+        fields: [
+          { name: "name", type: "string", required: true },
+          { name: "role", type: "string", required: false },
+        ],
+      };
+      const row = makeRow("1", { name: "Alice", role: "engineer" }, { name: "Alice" });
+      const result = evaluateRow(row, schema);
+      expect(result.status).toBe("fail");
+      expect(result.failures).toMatchObject([
+        { reason: "MISSING_FIELD", field: "role" },
+      ]);
+    });
+
     it("fails with MISSING_FIELD when required field is absent", () => {
       const row = makeRow("1", { name: "Alice", age: 30 }, { name: "Alice" });
       const result = evaluateRow(row, simpleSchema);

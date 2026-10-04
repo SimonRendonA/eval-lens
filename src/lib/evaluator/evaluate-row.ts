@@ -90,7 +90,7 @@ export function evaluateRow(
 
   // Structural checks via schema validation. Valid JSON that is not an
   // object (null, a number, an array…) fails here on `_root`.
-  const schemaFailures = validateAgainstSchema(actual, schema);
+  const schemaFailures = validateAgainstSchema(actual, schema, expected);
   if (!isPlainObject(actual)) {
     return { id: row.id, status: "fail", failures: schemaFailures };
   }

@@ -14,17 +14,23 @@ import { getValueType, hasOwn, isPlainObject } from "../utils";
  * Checks performed:
  * - `WRONG_TYPE` on `_root` — `actual` is not a JSON object (null, array,
  *   string, number, boolean). No field checks run in that case.
- * - `MISSING_FIELD` — a required schema field is absent from `actual`
+ * - `MISSING_FIELD` — a field is absent from `actual` although the schema
+ *   requires it, or this row's `expected` object contains it
  * - `WRONG_TYPE` — a field is present but its type does not match the schema
  * - `EXTRA_FIELD` — `actual` contains a key not defined in the schema
  *
- * Optional fields that are absent do not generate failures.
+ * Optional fields that are absent do not generate failures unless this row's
+ * gold has a value for them.
  *
+ * @param expected This row's parsed expected object. A field the row's gold
+ *   contains is required for this row even if the schema marks it optional —
+ *   otherwise an omitted optional value would pass silently.
  * @returns An array of failures. Empty array means the object conforms to the schema.
  */
 export function validateAgainstSchema(
   actual: unknown,
   schema: InferredSchema,
+  expected?: Record<string, unknown>,
 ): Failure[] {
   if (!isPlainObject(actual)) {
     return [
@@ -43,7 +49,9 @@ export function validateAgainstSchema(
   // Check each field in the schema
   for (const field of schema.fields) {
     if (!hasOwn(actual, field.name)) {
-      if (field.required) {
+      const requiredForRow =
+        field.required || (expected !== undefined && hasOwn(expected, field.name));
+      if (requiredForRow) {
         failures.push({
           reason: "MISSING_FIELD",
           field: field.name,
