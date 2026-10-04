@@ -37,6 +37,28 @@ describe("evaluateRow", () => {
       expect(evaluateRow(row, schema).status).toBe("pass");
     });
 
+    it("ignores key order inside objects nested in arrays", () => {
+      const schema: InferredSchema = {
+        fields: [{ name: "items", type: "array", required: true }],
+      };
+      const row = makeRow(
+        "1",
+        { items: [{ sku: "A1", qty: 2 }] },
+        { items: [{ qty: 2, sku: "A1" }] },
+      );
+      expect(evaluateRow(row, schema).status).toBe("pass");
+    });
+
+    it("still treats array element order as significant", () => {
+      const schema: InferredSchema = {
+        fields: [{ name: "tags", type: "array", required: true }],
+      };
+      const row = makeRow("1", { tags: ["a", "b"] }, { tags: ["b", "a"] });
+      expect(evaluateRow(row, schema).failures).toMatchObject([
+        { reason: "WRONG_VALUE", field: "tags" },
+      ]);
+    });
+
     it("returns pass for deeply equal arrays", () => {
       const schema: InferredSchema = {
         fields: [{ name: "tags", type: "array", required: true }],

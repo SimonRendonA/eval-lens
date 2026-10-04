@@ -158,7 +158,8 @@ Same — `UNPARSEABLE` on failure and stops.
 
 **Stage 4 — Value comparison**
 For every field that *passed* the structural checks, the evaluator compares the value in `expected` vs `actual`:
-- Objects and arrays: compared via `JSON.stringify` (order-sensitive)
+- Objects: compared key by key, ignoring key order (also inside arrays)
+- Arrays: compared element by element (element order matters)
 - Primitives: compared with strict `===`
 
 A mismatch produces a `WRONG_VALUE` failure.

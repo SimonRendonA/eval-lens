@@ -8,15 +8,22 @@ import { validateAgainstSchema } from "../schema";
 import { getValueType, hasOwn, isPlainObject } from "../utils";
 
 /**
- * Deep-equality check for two values.
- * Objects are compared recursively by key, ignoring insertion order.
- * Arrays are compared by JSON serialisation (order is significant for arrays).
- * Primitives are compared with strict equality.
+ * Deep-equality check for two JSON values.
+ * Objects are compared recursively by key, ignoring insertion order — also
+ * when they sit inside arrays. Arrays are compared element by element (order
+ * is significant). Primitives are compared with strict equality.
  */
-function valuesEqual(a: unknown, b: unknown): boolean {
+export function valuesEqual(a: unknown, b: unknown): boolean {
   const typeA = getValueType(a);
+  if (typeA !== getValueType(b)) return false;
+
   if (typeA === "array") {
-    return JSON.stringify(a) === JSON.stringify(b);
+    const arrA = a as unknown[];
+    const arrB = b as unknown[];
+    return (
+      arrA.length === arrB.length &&
+      arrA.every((item, i) => valuesEqual(item, arrB[i]))
+    );
   }
   if (typeA === "object") {
     const objA = a as Record<string, unknown>;
@@ -24,7 +31,7 @@ function valuesEqual(a: unknown, b: unknown): boolean {
     const keysA = Object.keys(objA).sort();
     const keysB = Object.keys(objB).sort();
     if (keysA.length !== keysB.length) return false;
-    if (JSON.stringify(keysA) !== JSON.stringify(keysB)) return false;
+    if (keysA.some((key, i) => key !== keysB[i])) return false;
     return keysA.every((k) => valuesEqual(objA[k], objB[k]));
   }
   return a === b;
