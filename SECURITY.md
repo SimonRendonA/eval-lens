@@ -27,6 +27,8 @@ EvalLens processes user-uploaded files and (in self-hosted mode) makes API calls
 ## Design Decisions
 
 - API keys are only read server-side in API routes. They are never sent to the client.
+- `/api/generate` and `/api/narrative` refuse requests unless `EVALLENS_MODE=self-hosted`, so a hosted deployment can't spend provider credits even if keys are present in its environment.
+- Self-hosted mode has no authentication. Anyone who can reach the server can use its API keys, so run it on localhost or behind an authenticating reverse proxy.
 - The `/api/config` endpoint returns provider names and model lists, never keys.
 - All file parsing happens client-side. No uploaded data is sent to our servers in hosted mode.
 - EvalLens has no database, no user accounts, and no persistence. Session data lives in React state only.

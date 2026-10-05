@@ -26,6 +26,14 @@ function getInterRowDelay(): number {
 }
 
 export async function POST(req: Request) {
+  // Generation spends provider credits, so it only exists in self-hosted mode
+  if (process.env.EVALLENS_MODE !== "self-hosted") {
+    return new Response(
+      JSON.stringify({ error: "Not available in hosted mode" }),
+      { status: 403, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   let body: { rows: unknown; providerId: unknown; model: unknown };
   try {
     body = await req.json();
