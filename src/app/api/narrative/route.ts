@@ -3,7 +3,11 @@ import {
   createProviderFromEnv,
   getAvailableProviderById,
 } from "@/lib/providers";
-import { buildNarrativePrompt, parseNarrativeResponse } from "@/lib/narrative";
+import {
+  buildNarrativePrompt,
+  clusterFailures,
+  parseNarrativeResponse,
+} from "@/lib/narrative";
 import type { NarrativeRequest } from "@/lib/narrative";
 
 const VALID_PROVIDER_IDS = ["openai", "anthropic", "gemini"] as const;
@@ -28,7 +32,8 @@ export async function POST(req: Request) {
   if (
     !body.failedRows ||
     !Array.isArray(body.failedRows) ||
-    body.failedRows.length === 0
+    body.failedRows.length === 0 ||
+    !body.failedRows.every((row) => Array.isArray(row?.failures))
   ) {
     return NextResponse.json(
       { error: "No failed rows to analyze" },
@@ -60,7 +65,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const prompt = buildNarrativePrompt(body);
+  // Exact clusters over every failed row; the model only names and explains
+  // them, so the counts it reports can't be invented from a sample.
+  const clusters = clusterFailures(body.failedRows);
+  const prompt = buildNarrativePrompt(body, clusters);
 
   // Call the provider — all key resolution is handled by the abstraction
   let rawResponse: string;
@@ -80,7 +88,7 @@ export async function POST(req: Request) {
 
   // Parse response
   try {
-    const narrative = parseNarrativeResponse(rawResponse);
+    const narrative = parseNarrativeResponse(rawResponse, clusters);
     return NextResponse.json(narrative, { status: 200 });
   } catch (err) {
     console.error(

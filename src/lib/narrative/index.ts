@@ -4,10 +4,12 @@ export type {
   NarrativeRow,
   NarrativeResponse,
   NarrativePattern,
+  FailureCluster,
 } from "./types";
 
 export {
   buildNarrativePrompt,
   parseNarrativeResponse,
+  clusterFailures,
   NarrativeParseError,
 } from "./generator";

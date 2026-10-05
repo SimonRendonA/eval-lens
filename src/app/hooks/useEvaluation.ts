@@ -239,21 +239,15 @@ export default function useEvaluation() {
     const failureBreakdown: Record<string, number> = {};
     const failedRows: NarrativeRow[] = failedRowResults.map((row) => {
       const raw = rawRowMap.get(row.id);
-      const failureReasons = row.failures.map((f) => f.reason as string);
-      const fieldFailures: Record<string, string> = {};
       for (const f of row.failures) {
-        fieldFailures[f.field] = f.reason;
-      }
-      for (const reason of failureReasons) {
-        failureBreakdown[reason] = (failureBreakdown[reason] ?? 0) + 1;
+        failureBreakdown[f.reason] = (failureBreakdown[f.reason] ?? 0) + 1;
       }
       return {
         id: row.id,
         ...(raw?.prompt ? { prompt: raw.prompt } : {}),
         expected: raw?.expected ?? "",
         actual: raw?.actual ?? "",
-        failureReasons,
-        ...(Object.keys(fieldFailures).length > 0 ? { fieldFailures } : {}),
+        failures: row.failures.map((f) => ({ field: f.field, reason: f.reason })),
       };
     });
 

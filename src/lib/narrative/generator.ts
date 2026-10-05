@@ -1,4 +1,7 @@
+import { parseOutput } from "../evaluator/parse-output";
 import type {
+  FailureCluster,
+  NarrativePattern,
   NarrativeRequest,
   NarrativeResponse,
   NarrativeRow,
@@ -14,24 +17,86 @@ export class NarrativeParseError extends Error {
   }
 }
 
-export function buildNarrativePrompt(request: NarrativeRequest): string {
+/** Rows shown to the model as examples. */
+const MAX_SAMPLED_ROWS = 20;
+/** Clusters listed in the prompt; smaller ones are summarised as a count. */
+const MAX_PROMPT_CLUSTERS = 40;
+/** Example ids attached to each pattern. */
+const EXAMPLES_PER_PATTERN = 3;
+
+/**
+ * Groups failed rows into one cluster per (field, reason) pair, largest first.
+ *
+ * The narrative is built on these clusters so that every count it shows is
+ * computed over all failed rows, not guessed by the model from a sample.
+ */
+export function clusterFailures(rows: NarrativeRow[]): FailureCluster[] {
+  const byKey = new Map<string, Omit<FailureCluster, "id">>();
+
+  for (const row of rows) {
+    const keysOnRow = new Set<string>();
+    for (const failure of row.failures) {
+      const key = `${failure.field}\u0000${failure.reason}`;
+      if (keysOnRow.has(key)) continue;
+      keysOnRow.add(key);
+
+      const cluster = byKey.get(key);
+      if (cluster) cluster.rowIds.push(row.id);
+      else
+        byKey.set(key, {
+          field: failure.field,
+          reason: failure.reason,
+          rowIds: [row.id],
+        });
+    }
+  }
+
+  return [...byKey.values()]
+    .sort(
+      (a, b) =>
+        b.rowIds.length - a.rowIds.length ||
+        a.field.localeCompare(b.field) ||
+        a.reason.localeCompare(b.reason),
+    )
+    .map((cluster, i) => ({ id: `C${i + 1}`, ...cluster }));
+}
+
+export function buildNarrativePrompt(
+  request: NarrativeRequest,
+  clusters: FailureCluster[] = clusterFailures(request.failedRows),
+): string {
   const includePrompt = shouldIncludePrompt(request.failedRows);
-  const sampledRows = sampleFailedRows(request.failedRows, 20);
+  const sampledRows = sampleFailedRows(request.failedRows, clusters);
+  const clustersByRow = clusterIdsByRow(clusters);
 
   const failureBreakdown = Object.entries(request.failureBreakdown)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([reason, count]) => `- ${reason}: ${count}`)
     .join("\n");
 
+  const listedClusters = clusters.slice(0, MAX_PROMPT_CLUSTERS);
+  const clusterLines = listedClusters.map(
+    (c) => `- ${c.id}: field "${c.field}", ${c.reason}, ${c.rowIds.length} rows`,
+  );
+  if (clusters.length > listedClusters.length) {
+    clusterLines.push(
+      `- (${clusters.length - listedClusters.length} smaller clusters not listed)`,
+    );
+  }
+
   const rowBlocks = sampledRows
-    .map((row) => formatRow(row, includePrompt))
+    .map((row) =>
+      formatRow(row, includePrompt, clustersByRow.get(row.id) ?? []),
+    )
     .join("\n\n");
 
   return [
     "You are analyzing failures from an EvalLens evaluation run.",
     "Respond only with valid JSON. Do not use markdown, backticks, or any prose outside the JSON object.",
     "The JSON must match this TypeScript shape exactly:",
-    '{"summary":"string","patterns":[{"title":"string","description":"string","affectedCount":0,"exampleIds":["string"]}],"recommendation":"string"}',
+    '{"summary":"string","patterns":[{"title":"string","description":"string","clusterIds":["C1"]}],"recommendation":"string"}',
+    "EvalLens has already grouped every failed row into exact clusters, one per field and failure reason (listed below).",
+    "Each pattern must list the clusterIds it explains. EvalLens computes affected row counts and example row ids from those clusters, so do not state row counts or row ids yourself.",
     "Identify 1 to 4 distinct failure patterns.",
     "If the failures are genuinely random, do not invent patterns; return fewer patterns instead.",
     "Provide a single concrete recommendation for what to fix or investigate first.",
@@ -43,33 +108,72 @@ export function buildNarrativePrompt(request: NarrativeRequest): string {
     "Failure breakdown:",
     failureBreakdown || "- none",
     "",
+    "Failure clusters:",
+    clusterLines.join("\n") || "- none",
+    "",
     `Representative failed rows (${sampledRows.length} of ${request.failedRows.length} shown):`,
     rowBlocks || "none",
   ].join("\n");
 }
 
-export function parseNarrativeResponse(raw: string): NarrativeResponse {
-  const normalized = raw
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/```\s*$/i, "")
-    .trim();
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(normalized);
-  } catch {
+/**
+ * Parses the model's answer and resolves each pattern's cluster ids into
+ * exact counts and example ids. Patterns that cite no known cluster are
+ * dropped and counted in `discardedPatterns`.
+ *
+ * @throws {NarrativeParseError} if the answer isn't JSON of the expected shape
+ */
+export function parseNarrativeResponse(
+  raw: string,
+  clusters: FailureCluster[],
+): NarrativeResponse {
+  const output = parseOutput(raw.trim());
+  if (!output.ok) {
     throw new NarrativeParseError("Failed to parse narrative JSON", raw);
   }
 
-  if (!isNarrativeResponse(parsed)) {
+  const parsed = output.value;
+  if (!isRawNarrative(parsed)) {
     throw new NarrativeParseError(
       "Narrative response does not match expected shape",
       raw,
     );
   }
 
-  return parsed;
+  const clustersById = new Map(clusters.map((c) => [c.id, c]));
+  const patterns: NarrativePattern[] = [];
+  let discarded = 0;
+
+  for (const pattern of parsed.patterns) {
+    const cited = [...new Set(pattern.clusterIds)]
+      .map((id) => clustersById.get(id))
+      .filter((c): c is FailureCluster => c !== undefined);
+
+    if (cited.length === 0) {
+      discarded++;
+      continue;
+    }
+
+    const rowIds = [...new Set(cited.flatMap((c) => c.rowIds))];
+    patterns.push({
+      title: pattern.title,
+      description: pattern.description,
+      affectedCount: rowIds.length,
+      exampleIds: rowIds.slice(0, EXAMPLES_PER_PATTERN),
+      basis: cited.map((c) => ({
+        field: c.field,
+        reason: c.reason,
+        count: c.rowIds.length,
+      })),
+    });
+  }
+
+  return {
+    summary: parsed.summary,
+    patterns,
+    recommendation: parsed.recommendation,
+    ...(discarded > 0 ? { discardedPatterns: discarded } : {}),
+  };
 }
 
 function shouldIncludePrompt(rows: NarrativeRow[]): boolean {
@@ -84,64 +188,86 @@ function shouldIncludePrompt(rows: NarrativeRow[]): boolean {
   return rowsWithPrompt / rows.length >= 0.8;
 }
 
-function sampleFailedRows(rows: NarrativeRow[], maxRows: number): NarrativeRow[] {
-  if (rows.length <= maxRows) {
+/**
+ * Picks example rows round-robin across clusters (largest first), so small
+ * clusters still get an example once large ones have had theirs.
+ */
+function sampleFailedRows(
+  rows: NarrativeRow[],
+  clusters: FailureCluster[],
+): NarrativeRow[] {
+  if (rows.length <= MAX_SAMPLED_ROWS) {
     return rows;
   }
 
+  const rowsById = new Map(rows.map((row) => [row.id, row]));
   const selected: NarrativeRow[] = [];
   const seenIds = new Set<string>();
-  const reasons = Array.from(
-    new Set(rows.flatMap((row) => row.failureReasons).sort()),
-  );
+  const cursors = clusters.map(() => 0);
 
-  for (const reason of reasons) {
-    const matchingRows = rows.filter((row) => row.failureReasons.includes(reason));
-    for (const row of matchingRows.slice(0, 5)) {
-      if (!seenIds.has(row.id)) {
-        selected.push(row);
-        seenIds.add(row.id);
+  let progressed = true;
+  while (selected.length < MAX_SAMPLED_ROWS && progressed) {
+    progressed = false;
+    for (let c = 0; c < clusters.length; c++) {
+      const ids = clusters[c].rowIds;
+      while (cursors[c] < ids.length && seenIds.has(ids[cursors[c]])) {
+        cursors[c]++;
       }
-      if (selected.length === maxRows) {
-        return selected;
-      }
-    }
-  }
+      if (cursors[c] >= ids.length) continue;
 
-  for (const row of rows) {
-    if (!seenIds.has(row.id)) {
+      const row = rowsById.get(ids[cursors[c]]);
+      cursors[c]++;
+      progressed = true;
+      if (!row) continue;
+
       selected.push(row);
       seenIds.add(row.id);
-    }
-    if (selected.length === maxRows) {
-      break;
+      if (selected.length === MAX_SAMPLED_ROWS) break;
     }
   }
 
   return selected;
 }
 
-function formatRow(row: NarrativeRow, includePrompt: boolean): string {
+function clusterIdsByRow(clusters: FailureCluster[]): Map<string, string[]> {
+  const byRow = new Map<string, string[]>();
+  for (const cluster of clusters) {
+    for (const rowId of cluster.rowIds) {
+      const ids = byRow.get(rowId);
+      if (ids) ids.push(cluster.id);
+      else byRow.set(rowId, [cluster.id]);
+    }
+  }
+  return byRow;
+}
+
+function formatRow(
+  row: NarrativeRow,
+  includePrompt: boolean,
+  clusterIds: string[],
+): string {
   const lines = [
     `id: ${row.id}`,
     ...(includePrompt && row.prompt ? [`prompt: ${row.prompt}`] : []),
     `expected: ${row.expected}`,
     `actual: ${row.actual}`,
-    `failureReasons: ${row.failureReasons.join(", ")}`,
+    `failures: ${row.failures.map((f) => `${f.field} ${f.reason}`).join(", ")}`,
   ];
 
-  if (row.fieldFailures && Object.keys(row.fieldFailures).length > 0) {
-    const fieldFailures = Object.entries(row.fieldFailures)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([field, reason]) => `${field}: ${reason}`)
-      .join(", ");
-    lines.push(`fieldFailures: ${fieldFailures}`);
+  if (clusterIds.length > 0) {
+    lines.push(`clusters: ${clusterIds.join(", ")}`);
   }
 
   return lines.join("\n");
 }
 
-function isNarrativeResponse(value: unknown): value is NarrativeResponse {
+type RawNarrative = {
+  summary: string;
+  recommendation: string;
+  patterns: { title: string; description: string; clusterIds: string[] }[];
+};
+
+function isRawNarrative(value: unknown): value is RawNarrative {
   if (typeof value !== "object" || value === null) {
     return false;
   }
@@ -155,10 +281,10 @@ function isNarrativeResponse(value: unknown): value is NarrativeResponse {
     return false;
   }
 
-  return candidate.patterns.every(isNarrativePattern);
+  return candidate.patterns.every(isRawPattern);
 }
 
-function isNarrativePattern(value: unknown): boolean {
+function isRawPattern(value: unknown): boolean {
   if (typeof value !== "object" || value === null) {
     return false;
   }
@@ -167,8 +293,7 @@ function isNarrativePattern(value: unknown): boolean {
   return (
     typeof candidate.title === "string" &&
     typeof candidate.description === "string" &&
-    typeof candidate.affectedCount === "number" &&
-    Array.isArray(candidate.exampleIds) &&
-    candidate.exampleIds.every((exampleId) => typeof exampleId === "string")
+    Array.isArray(candidate.clusterIds) &&
+    candidate.clusterIds.every((id) => typeof id === "string")
   );
 }

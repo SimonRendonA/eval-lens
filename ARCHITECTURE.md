@@ -230,10 +230,13 @@ Clicking a row opens `RowInspector`, a slide-out sheet that shows the raw expect
 **What happens in code:**
 
 1. `triggerNarrative()` in `useEvaluation` collects all failed rows from the current result and POSTs them to `/api/narrative`.
-2. The route validates the request, checks `EVALLENS_MODE === "self-hosted"`, resolves the provider and API key using `createProviderFromEnv`, and calls `buildNarrativePrompt(failedRows)` from `src/lib/narrative/generator.ts`.
-3. The prompt samples up to 20 representative failed rows and asks the model to identify failure patterns.
-4. The response is parsed by `parseNarrativeResponse(text)` which strips markdown fences and validates the JSON shape into a `NarrativeResponse`.
-5. The hook stores the result in `narrative` state and surfaces it to `NarrativePanel` via `ResultsStep`.
+2. The route validates the request, checks `EVALLENS_MODE === "self-hosted"`, and resolves the provider and API key using `createProviderFromEnv`.
+3. `clusterFailures(failedRows)` groups **every** failed row into exact clusters, one per (field, reason) pair — e.g. `C1: company WRONG_VALUE, 97 rows`.
+4. `buildNarrativePrompt(request, clusters)` lists the clusters and samples up to 20 example rows round-robin across them. The model is asked to group cluster ids into named patterns — it never reports counts or row ids itself.
+5. `parseNarrativeResponse(text, clusters)` validates the JSON shape and resolves each pattern's cluster ids into an exact `affectedCount`, example ids, and a `basis` list. Patterns that cite no known cluster are dropped and counted in `discardedPatterns`.
+6. The hook stores the result in `narrative` state and surfaces it to `NarrativePanel` via `ResultsStep`.
+
+The model only names and explains failures; every number in the panel and in exports is computed by EvalLens over the full failed-row set.
 
 The `NarrativeResponse` shape:
 
@@ -242,13 +245,15 @@ type NarrativeResponse = {
   summary: string;
   patterns: NarrativePattern[];
   recommendation: string;
+  discardedPatterns?: number; // model patterns that matched no cluster
 };
 
 type NarrativePattern = {
   title: string;
   description: string;
-  affectedCount: number;
-  exampleIds: string[];
+  affectedCount: number;   // union of the cited clusters' rows
+  exampleIds: string[];    // first rows of that union
+  basis?: { field: string; reason: string; count: number }[];
 };
 ```
 

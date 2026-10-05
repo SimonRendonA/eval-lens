@@ -95,6 +95,18 @@ export function NarrativePanel({
                   <p className="mt-1 text-sm text-muted-foreground">
                     {pattern.description}
                   </p>
+                  {pattern.basis && pattern.basis.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {pattern.basis.map((b) => (
+                        <span
+                          key={`${b.field}-${b.reason}`}
+                          className="rounded-full bg-elevated px-2 py-0.5 font-mono text-xs text-text-secondary"
+                        >
+                          {b.field} · {b.reason} · {b.count}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <p className="mt-1.5 text-xs text-text-secondary">
                     {pattern.affectedCount} row
                     {pattern.affectedCount !== 1 ? "s" : ""} affected
@@ -121,6 +133,15 @@ export function NarrativePanel({
                 </div>
               ))}
             </div>
+          )}
+
+          {narrative.discardedPatterns !== undefined && (
+            <p className="text-xs text-text-muted">
+              {narrative.discardedPatterns} suggested pattern
+              {narrative.discardedPatterns !== 1 ? "s were" : " was"} dropped
+              because {narrative.discardedPatterns !== 1 ? "they" : "it"} didn&apos;t
+              match any failure in this run.
+            </p>
           )}
 
           {/* Recommendation */}
