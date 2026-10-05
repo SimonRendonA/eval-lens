@@ -135,6 +135,7 @@ EvalLens doesn't just say "fail." It tells you *why*:
 | `WRONG_VALUE` | Field exists with correct type but wrong value |
 | `EXTRA_FIELD` | Unexpected field present |
 | `UNPARSEABLE` | Output couldn't be parsed as valid JSON |
+| `WRAPPED_JSON` | Output is valid JSON wrapped in a markdown fence or prose; the content is still evaluated |
 
 ## Export Formats
 

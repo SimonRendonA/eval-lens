@@ -6,6 +6,7 @@ import {
 } from "../types";
 import { validateAgainstSchema } from "../schema";
 import { getValueType, hasOwn, isPlainObject } from "../utils";
+import { parseOutput } from "./parse-output";
 
 /**
  * Deep-equality check for two JSON values.
@@ -42,7 +43,9 @@ export function valuesEqual(a: unknown, b: unknown): boolean {
  *
  * Evaluation order:
  * 1. Parse `expected` — fail with `UNPARSEABLE` if it is not a JSON object
- * 2. Parse `actual` — fail with `UNPARSEABLE` if invalid JSON
+ * 2. Parse `actual` — fail with `UNPARSEABLE` if no JSON can be recovered.
+ *    JSON recovered from a markdown fence or prose adds `WRAPPED_JSON`, and
+ *    evaluation continues on the recovered content
  * 3. Run structural checks via `validateAgainstSchema`
  *    (`WRONG_TYPE` on `_root` for non-object output, `MISSING_FIELD`,
  *    `WRONG_TYPE`, `EXTRA_FIELD`)
@@ -76,11 +79,9 @@ export function evaluateRow(
     };
   }
 
-  // Parse actual
-  let actual: unknown;
-  try {
-    actual = JSON.parse(row.actual);
-  } catch {
+  // Parse actual, recovering JSON wrapped in a markdown fence or prose
+  const output = parseOutput(row.actual);
+  if (!output.ok) {
     return {
       id: row.id,
       status: "fail",
@@ -95,26 +96,36 @@ export function evaluateRow(
     };
   }
 
+  const failures: Failure[] = [];
+  if (output.wrapper !== null) {
+    failures.push({
+      reason: "WRAPPED_JSON",
+      field: "_root",
+      expected: "Bare JSON",
+      actual: row.actual,
+    });
+  }
+
   // Structural checks via schema validation. Valid JSON that is not an
   // object (null, a number, an array…) fails here on `_root`.
-  const schemaFailures = validateAgainstSchema(actual, schema, expected);
-  if (!isPlainObject(actual)) {
-    return { id: row.id, status: "fail", failures: schemaFailures };
+  const schemaFailures = validateAgainstSchema(output.value, schema, expected);
+  failures.push(...schemaFailures);
+  if (!isPlainObject(output.value)) {
+    return { id: row.id, status: "fail", failures };
   }
+  const actual = output.value;
 
   // Track which fields had structural failures so we skip value comparison
   const failedFields = new Set(schemaFailures.map((f) => f.field));
 
   // Value comparison for fields that passed structural checks
-  const valueFailures: Failure[] = [];
-
   for (const field of schema.fields) {
     if (failedFields.has(field.name)) continue;
     if (!hasOwn(expected, field.name)) continue;
     if (!hasOwn(actual, field.name)) continue;
 
     if (!valuesEqual(expected[field.name], actual[field.name])) {
-      valueFailures.push({
+      failures.push({
         reason: "WRONG_VALUE",
         field: field.name,
         expected: expected[field.name],
@@ -122,8 +133,6 @@ export function evaluateRow(
       });
     }
   }
-
-  const failures = [...schemaFailures, ...valueFailures];
 
   return {
     id: row.id,

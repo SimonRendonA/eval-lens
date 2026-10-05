@@ -146,9 +146,15 @@ If this throws, the row immediately fails with `UNPARSEABLE` and evaluation stop
 
 **Stage 2 — Parse actual**
 ```ts
-JSON.parse(row.actual)
+parseOutput(row.actual) // src/lib/evaluator/parse-output.ts
 ```
-Same — `UNPARSEABLE` on failure and stops.
+Tries a strict `JSON.parse` first. If that fails, it looks for JSON inside a
+markdown fence (```` ```json … ``` ````) and then for the first balanced `{…}`
+span embedded in prose. Recovered JSON adds a `WRAPPED_JSON` failure (a
+strict parser in production would still reject it) and evaluation continues
+on the recovered content, so a formatting problem isn't mistaken for a
+content problem. If nothing parses, the row fails with `UNPARSEABLE` and
+evaluation stops.
 
 **Stage 3 — Structural checks**
 `validateAgainstSchema(actual, schema)` in `src/lib/schema/validate.ts` checks three things:
@@ -173,6 +179,7 @@ Fields that already have a structural failure (`MISSING_FIELD`, `WRONG_TYPE`) ar
 
 ```
 UNPARSEABLE  → actual (or expected) is not valid JSON
+WRAPPED_JSON → actual is valid JSON wrapped in a markdown fence or prose
 MISSING_FIELD → required field is absent
 WRONG_TYPE   → field exists but has the wrong type
 EXTRA_FIELD  → unexpected field present in actual

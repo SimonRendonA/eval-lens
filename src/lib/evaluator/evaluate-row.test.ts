@@ -240,6 +240,33 @@ describe("evaluateRow", () => {
     });
   });
 
+  describe("WRAPPED_JSON", () => {
+    it("fails a fenced but otherwise correct output with only WRAPPED_JSON", () => {
+      const row: RawDatasetRow = {
+        id: "1",
+        prompt: "p",
+        expected: '{"name":"Alice","age":30}',
+        actual: '```json\n{"name":"Alice","age":30}\n```',
+      };
+      const result = evaluateRow(row, simpleSchema);
+      expect(result.status).toBe("fail");
+      expect(result.failures).toMatchObject([
+        { reason: "WRAPPED_JSON", field: "_root" },
+      ]);
+    });
+
+    it("still evaluates the content inside the wrapper", () => {
+      const row: RawDatasetRow = {
+        id: "1",
+        prompt: "p",
+        expected: '{"name":"Alice","age":30}',
+        actual: 'Result: {"name":"Bob","age":30}',
+      };
+      const reasons = evaluateRow(row, simpleSchema).failures.map((f) => f.reason);
+      expect(reasons).toEqual(["WRAPPED_JSON", "WRONG_VALUE"]);
+    });
+  });
+
   describe("nullable fields", () => {
     const schema: InferredSchema = {
       fields: [{ name: "discount", type: "number", required: true, nullable: true }],

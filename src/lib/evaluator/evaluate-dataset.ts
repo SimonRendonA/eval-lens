@@ -13,12 +13,13 @@ import { evaluateRow } from "./evaluate-row";
  * per-reason failure counters for reporting and filtering in the UI.
  */
 
-const ALL_FAILURE_REASONS: FailureReason[] = [
+export const ALL_FAILURE_REASONS: FailureReason[] = [
   "MISSING_FIELD",
   "WRONG_TYPE",
   "WRONG_VALUE",
   "EXTRA_FIELD",
   "UNPARSEABLE",
+  "WRAPPED_JSON",
 ];
 
 /**

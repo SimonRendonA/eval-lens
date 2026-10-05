@@ -14,6 +14,7 @@ const sampleResult: EvaluationResult = {
       WRONG_VALUE: 1,
       EXTRA_FIELD: 0,
       UNPARSEABLE: 0,
+      WRAPPED_JSON: 0,
     },
   },
   rowResults: [

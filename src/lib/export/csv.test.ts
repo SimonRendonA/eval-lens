@@ -17,6 +17,7 @@ function makeResult(rows: EvaluationResult["rowResults"]): EvaluationResult {
         WRONG_VALUE: rows.filter((r) => r.failures.some((f) => f.reason === "WRONG_VALUE")).length,
         EXTRA_FIELD: 0,
         UNPARSEABLE: 0,
+        WRAPPED_JSON: 0,
       },
     },
     rowResults: rows,

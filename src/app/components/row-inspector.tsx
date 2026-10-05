@@ -78,9 +78,11 @@ export function RowInspector({
                         return String(firstFailure.expected);
                       }
                       const obj: Record<string, unknown> = {};
-                      row.failures.forEach((f) => {
-                        if (f.expected !== undefined) obj[f.field] = f.expected;
-                      });
+                      row.failures
+                        .filter((f) => f.reason !== "WRAPPED_JSON")
+                        .forEach((f) => {
+                          if (f.expected !== undefined) obj[f.field] = f.expected;
+                        });
                       if (Object.keys(obj).length === 0)
                         return "All fields match";
                       return JSON.stringify(obj, null, 2);
@@ -99,9 +101,11 @@ export function RowInspector({
                         return String(firstFailure.actual);
                       }
                       const obj: Record<string, unknown> = {};
-                      row.failures.forEach((f) => {
-                        if (f.actual !== undefined) obj[f.field] = f.actual;
-                      });
+                      row.failures
+                        .filter((f) => f.reason !== "WRAPPED_JSON")
+                        .forEach((f) => {
+                          if (f.actual !== undefined) obj[f.field] = f.actual;
+                        });
                       if (Object.keys(obj).length === 0)
                         return "All fields match";
                       return JSON.stringify(obj, null, 2);
@@ -126,7 +130,8 @@ export function RowInspector({
                             <Badge
                               className={
                                 f.reason === "WRONG_VALUE" ||
-                                f.reason === "WRONG_TYPE"
+                                f.reason === "WRONG_TYPE" ||
+                                f.reason === "WRAPPED_JSON"
                                   ? "bg-warning/15 text-warning hover:bg-warning/20"
                                   : "bg-fail/15 text-fail hover:bg-fail/20"
                               }

@@ -1,17 +1,25 @@
 import type { NarrativeResponse } from "@/lib/narrative";
 
-/** The category of a single evaluation failure. */
+/**
+ * The category of a single evaluation failure.
+ *
+ * `WRAPPED_JSON` means the output is valid JSON wrapped in a markdown fence or
+ * surrounding prose. The row still fails (a strict parser would reject it),
+ * but the unwrapped content is evaluated too, so format problems are reported
+ * separately from content problems.
+ */
 export type FailureReason =
   | "MISSING_FIELD"
   | "WRONG_TYPE"
   | "WRONG_VALUE"
   | "EXTRA_FIELD"
-  | "UNPARSEABLE";
+  | "UNPARSEABLE"
+  | "WRAPPED_JSON";
 
 /** Details about a single field-level failure within a row. */
 export type Failure = {
   reason: FailureReason;
-  /** The field name, or `"_root"` for UNPARSEABLE failures. */
+  /** The field name, or `"_root"` for failures about the whole output. */
   field: string;
   expected: unknown;
   actual: unknown;

@@ -15,6 +15,7 @@ function makeResult(overrides: Partial<EvaluationResult> = {}): EvaluationResult
         WRONG_VALUE: 1,
         EXTRA_FIELD: 0,
         UNPARSEABLE: 0,
+        WRAPPED_JSON: 0,
       },
     },
     rowResults: [
@@ -92,6 +93,7 @@ describe("exportToMarkdown", () => {
             WRONG_VALUE: 0,
             EXTRA_FIELD: 0,
             UNPARSEABLE: 0,
+            WRAPPED_JSON: 0,
           },
         },
         rowResults: [
@@ -123,6 +125,7 @@ describe("exportToMarkdown", () => {
             WRONG_VALUE: 0,
             EXTRA_FIELD: 0,
             UNPARSEABLE: 0,
+            WRAPPED_JSON: 0,
           },
         },
         rowResults: [{ id: "1", status: "pass", failures: [] }],
@@ -183,6 +186,7 @@ describe("exportToMarkdown", () => {
             WRONG_VALUE: 0,
             EXTRA_FIELD: 0,
             UNPARSEABLE: 0,
+            WRAPPED_JSON: 0,
           },
         },
         rowResults: [{ id: "1", status: "pass", failures: [] }],
