@@ -96,9 +96,6 @@ Before writing any Next.js code, read the relevant doc under
   into Claude context.
 - **`test.txt` at repo root.** Appears to be a scratch file. Safe to ignore or
   delete.
-- **Duplicate key design decision in ARCHITECTURE.md.** The "`actual` defaults
-  to `""`" block is duplicated (lines 353 and 355 at last check). Low-priority
-  cleanup task.
 
 ---
 

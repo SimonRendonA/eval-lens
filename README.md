@@ -129,9 +129,8 @@ EvalLens doesn't just say "fail." It tells you *why*:
 
 | Failure Reason | Description |
 |----------------|-------------|
-| `SCHEMA_MISMATCH` | Output structure doesn't match expected schema |
 | `MISSING_FIELD` | A required field is absent |
-| `WRONG_TYPE` | Field exists but has the wrong data type |
+| `WRONG_TYPE` | Field exists but has the wrong data type (on `_root`: the output isn't a JSON object) |
 | `WRONG_VALUE` | Field exists with correct type but wrong value |
 | `EXTRA_FIELD` | Unexpected field present |
 | `UNPARSEABLE` | Output couldn't be parsed as valid JSON |

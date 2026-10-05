@@ -142,7 +142,7 @@ After merging, every row has a non-empty `actual` string, and the pipeline conti
 ```ts
 JSON.parse(row.expected)
 ```
-If this throws, the row immediately fails with `UNPARSEABLE` and evaluation stops.
+If this throws, or the result isn't a JSON object, the row immediately fails with `UNPARSEABLE` and evaluation stops.
 
 **Stage 2 — Parse actual**
 ```ts
@@ -157,13 +157,16 @@ content problem. If nothing parses, the row fails with `UNPARSEABLE` and
 evaluation stops.
 
 **Stage 3 — Structural checks**
-`validateAgainstSchema(actual, schema)` in `src/lib/schema/validate.ts` checks three things:
+`validateAgainstSchema(actual, schema, expected)` in `src/lib/schema/validate.ts` checks:
 
 | Failure | Condition |
 |---------|-----------|
-| `MISSING_FIELD` | A required schema field is not present in `actual` |
-| `WRONG_TYPE` | A field is present but its JavaScript type doesn't match the schema |
+| `WRONG_TYPE` on `_root` | `actual` is valid JSON but not an object (`null`, a number, an array…). No field checks run. |
+| `MISSING_FIELD` | A field is absent from `actual` although the schema requires it **or this row's `expected` contains it** |
+| `WRONG_TYPE` | A field is present but its type isn't one the schema accepts (nullable fields accept `null`; mixed-type fields accept any type the gold uses) |
 | `EXTRA_FIELD` | `actual` contains a key that isn't in the schema at all |
+
+Keys are checked as own properties, so a field called `constructor` isn't "present" on every object.
 
 **Stage 4 — Value comparison**
 For every field that *passed* the structural checks, the evaluator compares the value in `expected` vs `actual`:
@@ -180,8 +183,8 @@ Fields that already have a structural failure (`MISSING_FIELD`, `WRONG_TYPE`) ar
 ```
 UNPARSEABLE  → actual (or expected) is not valid JSON
 WRAPPED_JSON → actual is valid JSON wrapped in a markdown fence or prose
-MISSING_FIELD → required field is absent
-WRONG_TYPE   → field exists but has the wrong type
+MISSING_FIELD → field required by the schema or by this row's gold is absent
+WRONG_TYPE   → field (or the whole output, on _root) has the wrong type
 EXTRA_FIELD  → unexpected field present in actual
 WRONG_VALUE  → field is structurally correct but the value differs
 ```
@@ -365,8 +368,6 @@ Browser
 **`src/lib/` has zero React dependencies.** Every evaluation function is a plain TypeScript function that takes data and returns data. This makes them trivially testable and reusable outside the UI.
 
 **Runtime mode gating, not build-time.** `EVALLENS_MODE` is read server-side only. The client learns the mode by calling `GET /api/config` on mount. This means a single Docker image can run in either mode based on the environment variable injected at runtime — no rebuild required.
-
-**`actual` defaults to `""`** when the column is absent. This makes the "no actual yet" state representable without a separate field, and keeps the `RawDatasetRow` type simple. An empty string always fails JSON parsing, which triggers `UNPARSEABLE` — the correct failure for an ungenerated row.
 
 **`actual` defaults to `""`** when the column is absent. This makes the "no actual yet" state representable without a separate field, and keeps the `RawDatasetRow` type simple. An empty string always fails JSON parsing, which triggers `UNPARSEABLE` — the correct failure for an ungenerated row.
 
