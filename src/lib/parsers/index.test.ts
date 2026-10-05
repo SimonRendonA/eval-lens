@@ -17,7 +17,13 @@ describe("parseFile", () => {
     expect(rows[0].id).toBe("1");
   });
 
-  it("dispatches to JSONL parser for .json files", () => {
+  it("parses .json files containing a JSON array", () => {
+    const content = `[\n  ${validJsonl},\n  ${validJsonl.replace('"1"', '"2"')}\n]`;
+    const { rows } = parseFile(content, "data.json");
+    expect(rows.map((r) => r.id)).toEqual(["1", "2"]);
+  });
+
+  it("still accepts JSON Lines content in a .json file", () => {
     const { rows } = parseFile(validJsonl, "data.json");
     expect(rows).toHaveLength(1);
   });

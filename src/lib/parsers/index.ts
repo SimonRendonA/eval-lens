@@ -1,6 +1,7 @@
 import { RawDatasetRow, ParseError } from "../types";
 import { parseCsv } from "./csv";
 import { parseJsonl } from "./jsonl";
+import { parseJson } from "./json";
 
 /**
  * Parser entrypoint that dispatches by file extension and normalizes supported
@@ -30,8 +31,10 @@ export function parseFile(content: string, filename: string): ParseResult {
       result = parseCsv(content);
       break;
     case "jsonl":
-    case "json":
       result = parseJsonl(content);
+      break;
+    case "json":
+      result = parseJson(content);
       break;
     default:
       throw new Error(
@@ -82,3 +85,4 @@ export function disambiguateIds(rows: RawDatasetRow[]): {
 
 export { parseCsv } from "./csv";
 export { parseJsonl } from "./jsonl";
+export { parseJson } from "./json";

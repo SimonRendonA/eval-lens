@@ -36,8 +36,8 @@ The `generating` step only appears in self-hosted mode when the file has no `act
 **What happens in code:**
 
 1. The browser reads the file as a text string.
-2. `parseFile(content, filename)` in `src/lib/parsers/index.ts` looks at the file extension and calls either `parseCsv` or `parseJsonl`.
-3. Both parsers return the same shape:
+2. `parseFile(content, filename)` in `src/lib/parsers/index.ts` looks at the file extension and calls `parseCsv`, `parseJsonl`, or `parseJson` (a JSON array of rows or a single row object; line-delimited content in a `.json` file falls back to `parseJsonl`). Repeated ids are renamed (`7`, `7#2`, …) with a warning, because later steps look rows up by id.
+3. All parsers return the same shape:
 
 ```ts
 { rows: RawDatasetRow[], errors: ParseError[] }
@@ -345,7 +345,7 @@ Browser
 │       └── NarrativePanel  (self-hosted only)
 │
 └── src/lib/ (pure functions, no React)
-    ├── parsers/   parseFile → parseCsv / parseJsonl
+    ├── parsers/   parseFile → parseCsv / parseJsonl / parseJson
     ├── schema/    inferSchema, validateAgainstSchema
     ├── evaluator/ evaluateRow, evaluateDataset
     ├── export/    exportToCsv/Json/Markdown/Pdf, downloadFile

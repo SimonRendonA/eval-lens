@@ -37,7 +37,7 @@ export function parseJsonl(content: string): JsonlParseResult {
   lines.forEach((line, index) => {
     const lineNumber = index + 1;
 
-    let parsed: Record<string, unknown>;
+    let parsed: unknown;
     try {
       parsed = JSON.parse(line);
     } catch {
@@ -48,44 +48,57 @@ export function parseJsonl(content: string): JsonlParseResult {
       return;
     }
 
-    if (
-      typeof parsed !== "object" ||
-      parsed === null ||
-      Array.isArray(parsed)
-    ) {
-      errors.push({
-        row: lineNumber,
-        message: "Line must be a JSON object",
-      });
-      return;
-    }
+    const result = recordToRow(parsed, lineNumber, "Line");
+    if ("error" in result) errors.push(result.error);
+    else rows.push(result.row);
+  });
 
-    const missing = REQUIRED_KEYS.filter((key) => !(key in parsed));
+  return { rows, errors };
+}
 
-    if (missing.length > 0) {
-      errors.push({
-        row: parsed.id !== undefined ? String(parsed.id) : lineNumber,
+/**
+ * Validates one parsed JSON record and normalizes it into a dataset row.
+ * Shared by the JSONL parser (one record per line) and the JSON parser (an
+ * array of records).
+ *
+ * @param position 1-indexed line or array position, used in error messages
+ * @param unit What a record is called in messages ("Line" or "Row")
+ */
+export function recordToRow(
+  record: unknown,
+  position: number,
+  unit: "Line" | "Row",
+): { row: RawDatasetRow } | { error: ParseError } {
+  if (typeof record !== "object" || record === null || Array.isArray(record)) {
+    return {
+      error: { row: position, message: `${unit} must be a JSON object` },
+    };
+  }
+
+  const parsed = record as Record<string, unknown>;
+  const missing = REQUIRED_KEYS.filter((key) => !(key in parsed));
+
+  if (missing.length > 0) {
+    return {
+      error: {
+        row: parsed.id !== undefined ? String(parsed.id) : position,
         message: `Missing keys: ${missing.join(", ")}`,
-      });
-      return;
-    }
-    // If no actual key, set it to empty string for easier handling downstream
-    if (!("actual" in parsed)) {
-      parsed.actual = "";
-    }
-    rows.push({
+      },
+    };
+  }
+
+  // A missing actual becomes "" so self-hosted mode knows to generate it
+  const actual = "actual" in parsed ? parsed.actual : "";
+
+  return {
+    row: {
       id: String(parsed.id),
       prompt: String(parsed.prompt),
       expected:
         typeof parsed.expected === "string"
           ? parsed.expected
           : JSON.stringify(parsed.expected),
-      actual:
-        typeof parsed.actual === "string"
-          ? parsed.actual
-          : JSON.stringify(parsed.actual),
-    });
-  });
-
-  return { rows, errors };
+      actual: typeof actual === "string" ? actual : JSON.stringify(actual),
+    },
+  };
 }
